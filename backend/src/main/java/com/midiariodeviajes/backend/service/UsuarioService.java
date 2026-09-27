@@ -18,6 +18,7 @@ public class UsuarioService {
     }
 
     public Usuario guardar(Usuario usuario) {
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword())); //Cuando guardemos, la contraseña se convierte en un hash BCrypt y se almacena.
         return usuarioRepository.save(usuario);
     }
 
