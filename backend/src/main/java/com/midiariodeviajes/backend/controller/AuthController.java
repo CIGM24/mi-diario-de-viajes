@@ -4,6 +4,7 @@ import com.midiariodeviajes.backend.dto.RegistroRequest;
 import com.midiariodeviajes.backend.dto.RegistroResponse;
 import com.midiariodeviajes.backend.model.Usuario;
 import com.midiariodeviajes.backend.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegistroResponse> registrar(@RequestBody RegistroRequest request) {
+    public ResponseEntity<RegistroResponse> registrar(@Valid @RequestBody RegistroRequest request) {
 
         if (usuarioService.existeEmail(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
