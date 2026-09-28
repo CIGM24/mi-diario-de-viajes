@@ -8,15 +8,20 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.midiariodeviajes.backend.dto.LoginRequest;
+import com.midiariodeviajes.backend.dto.LoginResponse;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final UsuarioService usuarioService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(UsuarioService usuarioService) {
+    public AuthController(UsuarioService usuarioService, PasswordEncoder passwordEncoder) {
         this.usuarioService = usuarioService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/register")
@@ -41,6 +46,28 @@ public class AuthController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    //Comprueba email y contraseña mediante BCrypt
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        return usuarioService.buscarPorEmail(request.getEmail())
+                .filter(usuario ->
+                        passwordEncoder.matches(
+                                request.getPassword(),
+                                usuario.getPassword()
+                        )
+                )
+                .map(usuario ->
+                        ResponseEntity.ok(
+                                new LoginResponse("LOGIN_CORRECTO")
+                        )
+                )
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+                );
     }
 }
 
