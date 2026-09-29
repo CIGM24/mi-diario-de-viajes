@@ -3,6 +3,7 @@ package com.midiariodeviajes.backend.controller;
 import com.midiariodeviajes.backend.dto.RegistroRequest;
 import com.midiariodeviajes.backend.dto.RegistroResponse;
 import com.midiariodeviajes.backend.model.Usuario;
+import com.midiariodeviajes.backend.service.JwtService;
 import com.midiariodeviajes.backend.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -18,10 +19,14 @@ public class AuthController {
 
     private final UsuarioService usuarioService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthController(UsuarioService usuarioService, PasswordEncoder passwordEncoder) {
+    public AuthController(UsuarioService usuarioService,
+                          PasswordEncoder passwordEncoder,
+                          JwtService jwtService) {
         this.usuarioService = usuarioService;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/register")
@@ -62,7 +67,8 @@ public class AuthController {
                 )
                 .map(usuario ->
                         ResponseEntity.ok(
-                                new LoginResponse("LOGIN_CORRECTO")
+                                new LoginResponse(
+                                        jwtService.generarToken(usuario.getId()))
                         )
                 )
                 .orElseGet(() ->
