@@ -34,4 +34,27 @@ public class JwtService {
                 .signWith(secretKey)
                 .compact();
     }
+
+    public boolean esTokenValido(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token);
+
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public String obtenerUsuarioId(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+    }
 }
