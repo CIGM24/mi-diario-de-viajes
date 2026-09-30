@@ -1,12 +1,13 @@
 package com.midiariodeviajes.backend.controller;
 
+import com.midiariodeviajes.backend.dto.ViajeRequest;
 import com.midiariodeviajes.backend.model.Viaje;
 import com.midiariodeviajes.backend.service.ViajeService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -27,5 +28,28 @@ public class ViajeController {
         List<Viaje> viajes = viajeService.obtenerPorUsuario(usuarioId);
 
         return ResponseEntity.ok(viajes);
+    }
+
+    @PostMapping
+    public ResponseEntity<Viaje> crearViaje(
+            @Valid @RequestBody ViajeRequest request,
+            Authentication authentication) {
+
+        String usuarioId = authentication.getName();
+
+        Viaje viaje = new Viaje(
+                usuarioId,
+                request.getNombre(),
+                request.getDestino(),
+                request.getFechaInicio(),
+                request.getFechaFin(),
+                request.getPresupuesto(),
+                request.getDescripcion(),
+                request.getEstado()
+        );
+        Viaje viajeGuardado = viajeService.guardar(viaje);
+
+        return ResponseEntity.ok(viajeGuardado);
+
     }
 }
