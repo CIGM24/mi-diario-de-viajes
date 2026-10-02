@@ -30,6 +30,18 @@ public class ViajeController {
         return ResponseEntity.ok(viajes);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Viaje> obtenerViaje(
+            @PathVariable String id,
+            Authentication authentication) {
+
+        String usuarioId = authentication.getName();
+
+        return viajeService.obtenerPorIdYUsuario(id, usuarioId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<Viaje> crearViaje(
             @Valid @RequestBody ViajeRequest request,
