@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.midiariodeviajes.backend.model.EstadoViaje;
 
 import java.util.List;
 
@@ -21,11 +22,18 @@ public class ViajeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Viaje>> obtenerViajes(Authentication authentication) {
+    public ResponseEntity<List<Viaje>> obtenerViajes(@RequestParam(required = false) EstadoViaje estado,
+                                                     Authentication authentication) {
 
         String usuarioId = authentication.getName();
 
-        List<Viaje> viajes = viajeService.obtenerPorUsuario(usuarioId);
+        List<Viaje> viajes;
+
+        if (estado == null) {
+            viajes = viajeService.obtenerPorUsuario(usuarioId);
+        } else {
+            viajes = viajeService.obtenerPorUsuarioYEstado(usuarioId, estado);
+        }
 
         return ResponseEntity.ok(viajes);
     }
