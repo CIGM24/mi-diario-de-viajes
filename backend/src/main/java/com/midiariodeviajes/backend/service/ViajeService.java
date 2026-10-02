@@ -2,6 +2,7 @@ package com.midiariodeviajes.backend.service;
 
 import com.midiariodeviajes.backend.model.EstadoViaje;
 import com.midiariodeviajes.backend.model.Viaje;
+import com.midiariodeviajes.backend.repository.LugarRepository;
 import com.midiariodeviajes.backend.repository.ViajeRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,9 +13,12 @@ import java.util.Optional;
 public class ViajeService {
 
     private final ViajeRepository viajeRepository;
+    private final LugarRepository lugarRepository;
 
-    public ViajeService(ViajeRepository viajeRepository) {
+    public ViajeService(ViajeRepository viajeRepository,
+                        LugarRepository lugarRepository) {
         this.viajeRepository = viajeRepository;
+        this.lugarRepository = lugarRepository;
     }
 
     public List<Viaje> obtenerPorUsuario(String usuarioId) {
@@ -40,11 +44,19 @@ public class ViajeService {
         return viajeRepository.save(viaje);
     }
 
-    public void eliminar(String id, String usuarioId) {
+    public boolean eliminar(String id, String usuarioId) {
         Optional<Viaje> viaje = obtenerPorIdYUsuario(id, usuarioId);
 
-        if (viaje.isPresent()) {
-            viajeRepository.delete(viaje.get());
+        if (viaje.isEmpty()) {
+            return false;
         }
+
+        lugarRepository.deleteAll(
+                lugarRepository.findByViajeId(id)
+        );
+
+        viajeRepository.delete(viaje.get());
+
+        return true;
     }
 }

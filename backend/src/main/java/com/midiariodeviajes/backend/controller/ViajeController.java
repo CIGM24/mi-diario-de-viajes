@@ -42,6 +42,47 @@ public class ViajeController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Viaje> actualizarViaje(
+            @PathVariable String id,
+            @Valid @RequestBody ViajeRequest request,
+            Authentication authentication) {
+
+        String usuarioId = authentication.getName();
+
+        return viajeService.obtenerPorIdYUsuario(id, usuarioId)
+                .map(viaje -> {
+                    viaje.setNombre(request.getNombre());
+                    viaje.setDestino(request.getDestino());
+                    viaje.setFechaInicio(request.getFechaInicio());
+                    viaje.setFechaFin(request.getFechaFin());
+                    viaje.setPresupuesto(request.getPresupuesto());
+                    viaje.setDescripcion(request.getDescripcion());
+                    viaje.setEstado(request.getEstado());
+
+                    Viaje viajeActualizado = viajeService.guardar(viaje);
+
+                    return ResponseEntity.ok(viajeActualizado);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarViaje(
+            @PathVariable String id,
+            Authentication authentication) {
+
+        String usuarioId = authentication.getName();
+
+        boolean eliminado = viajeService.eliminar(id, usuarioId);
+
+        if (!eliminado) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping
     public ResponseEntity<Viaje> crearViaje(
             @Valid @RequestBody ViajeRequest request,
