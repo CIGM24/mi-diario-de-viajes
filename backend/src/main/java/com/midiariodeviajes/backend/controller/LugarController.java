@@ -25,7 +25,9 @@ public class LugarController {
             @PathVariable String viajeId,
             Authentication authentication) {
 
-        List<Lugar> lugares = lugarService.obtenerPorViaje(viajeId);
+        String usuarioId = authentication.getName();
+
+        List<Lugar> lugares = lugarService.obtenerPorViaje(viajeId, usuarioId);
 
         return ResponseEntity.ok(lugares);
     }
@@ -45,9 +47,11 @@ public class LugarController {
                 request.getLongitud()
         );
 
-        Lugar lugarGuardado = lugarService.guardar(lugar);
+        String usuarioId = authentication.getName();
 
-        return ResponseEntity.ok(lugarGuardado);
+        return lugarService.guardar(lugar, usuarioId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/lugares/{id}")
@@ -56,7 +60,9 @@ public class LugarController {
             @Valid @RequestBody LugarRequest request,
             Authentication authentication) {
 
-        return lugarService.obtenerPorId(id)
+        String usuarioId = authentication.getName();
+
+        return lugarService.obtenerPorId(id, usuarioId)
                 .map(lugar -> {
                     lugar.setNombre(request.getNombre());
                     lugar.setDescripcion(request.getDescripcion());
@@ -64,9 +70,9 @@ public class LugarController {
                     lugar.setLatitud(request.getLatitud());
                     lugar.setLongitud(request.getLongitud());
 
-                    Lugar lugarActualizado = lugarService.guardar(lugar);
-
-                    return ResponseEntity.ok(lugarActualizado);
+                    return lugarService.guardar(lugar, usuarioId)
+                            .map(ResponseEntity::ok)
+                            .orElseGet(() -> ResponseEntity.notFound().build());
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
