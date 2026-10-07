@@ -76,4 +76,20 @@ public class LugarController {
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @DeleteMapping("/lugares/{id}")
+    public ResponseEntity<Void> eliminarLugar(
+            @PathVariable String id,
+            Authentication authentication) {
+
+        String usuarioId = authentication.getName();
+
+        boolean eliminado = lugarService.eliminar(id, usuarioId);
+
+        if (!eliminado) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
 }
