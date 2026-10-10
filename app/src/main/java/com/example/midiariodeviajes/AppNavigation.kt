@@ -5,11 +5,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.midiariodeviajes.ui.login.LoginScreen
+import com.example.midiariodeviajes.ui.register.RegisterScreen
 import com.example.midiariodeviajes.ui.welcome.WelcomeScreen
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
     const val LOGIN = "login"
+    const val REGISTRO = "registro"
 }
 
 @Composable
@@ -31,7 +33,14 @@ fun AppNavigation() {
         composable(Rutas.LOGIN) {
             LoginScreen(
                 onCrearCuentaClick = {
-                    // Añadiremos la pantalla de registro más adelante.
+                    navController.navigate(Rutas.REGISTRO)
+                }
+            )
+        }
+        composable(Rutas.REGISTRO) {
+            RegisterScreen(
+                onIniciarSesionClick = {
+                    navController.popBackStack()
                 }
             )
         }
