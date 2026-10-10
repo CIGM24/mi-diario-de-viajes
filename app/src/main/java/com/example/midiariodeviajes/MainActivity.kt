@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.Surface
+import com.example.midiariodeviajes.ui.login.LoginScreen
 import com.example.midiariodeviajes.ui.theme.MiDiarioDeViajesTheme
 import com.example.midiariodeviajes.ui.welcome.WelcomeScreen
 
@@ -19,7 +20,9 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    WelcomeScreen()
+                    AppNavigation()
+                    //LoginScreen()
+                    //WelcomeScreen()
                 }
             }
         }
