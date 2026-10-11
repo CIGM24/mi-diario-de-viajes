@@ -20,6 +20,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
+                    //com.example.midiariodeviajes.ui.viajes.MisViajesScreen()
                     AppNavigation()
                     //LoginScreen()
                     //WelcomeScreen()
