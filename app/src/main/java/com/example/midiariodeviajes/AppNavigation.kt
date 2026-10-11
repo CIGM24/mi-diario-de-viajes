@@ -8,6 +8,7 @@ import com.example.midiariodeviajes.ui.login.LoginScreen
 import com.example.midiariodeviajes.ui.register.RegisterScreen
 import com.example.midiariodeviajes.ui.welcome.WelcomeScreen
 import com.example.midiariodeviajes.ui.viajes.MisViajesScreen
+import com.example.midiariodeviajes.ui.viajes.formulario.AnadirViajeScreen
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -63,10 +64,21 @@ fun AppNavigation() {
                     // Más adelante añadiremos el perfil y el cierre de sesión.
                 },
                 onAnadirViajeClick = {
-                    // Más adelante añadiremos el formulario para crear viajes.
+                    navController.navigate("anadir_viaje")
                 },
                 onDetalleViajeClick = { pais ->
                     // Más adelante conectaremos esta acción con el detalle del viaje.
+                }
+            )
+        }
+
+        composable("anadir_viaje") {
+            AnadirViajeScreen(
+                onVolverClick = {
+                    navController.popBackStack()
+                },
+                onGuardarClick = {
+                    // Más adelante conectaremos el guardado real.
                 }
             )
         }
