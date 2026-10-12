@@ -36,6 +36,33 @@ private val VerdeOscuro = Color(0xFF263D32)
 private val VerdeBoton = Color(0xFF45664A)
 private val BlancoCalido = Color(0xFFFFFCF5)
 
+private fun fechaEsValida(fecha: String): Boolean {
+    val formato = Regex("""\d{4}-\d{2}-\d{2}""")
+
+    if (!formato.matches(fecha)) {
+        return false
+    }
+
+    val partes = fecha.split("-")
+    val anio = partes[0].toInt()
+    val mes = partes[1].toInt()
+    val dia = partes[2].toInt()
+
+    if (mes !in 1..12) return false
+    if (dia !in 1..31) return false
+
+    val diasPorMes = when (mes) {
+        4, 6, 9, 11 -> 30
+        2 -> if (
+            anio % 400 == 0 ||
+            (anio % 4 == 0 && anio % 100 != 0)
+        ) 29 else 28
+        else -> 31
+    }
+
+    return dia <= diasPorMes
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnadirViajeScreen(
@@ -49,6 +76,8 @@ fun AnadirViajeScreen(
     var presupuesto by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var estado by remember { mutableStateOf("PENDIENTE") }
+
+    var errorValidacion by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         containerColor = BlancoCalido,
@@ -202,7 +231,44 @@ fun AnadirViajeScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Button(
-                onClick = onGuardarClick,
+                onClick = {
+                    errorValidacion = when {
+                        nombre.isBlank() ->
+                            "Introduce el nombre del viaje."
+
+                        destino.isBlank() ->
+                            "Introduce el destino."
+
+                        fechaInicio.isBlank() ->
+                            "Introduce la fecha de inicio."
+
+                        fechaFin.isBlank() ->
+                            "Introduce la fecha de fin."
+
+                        fechaInicio.isNotBlank() && !fechaEsValida(fechaInicio.trim()) ->
+                            "La fecha de inicio debe tener el formato AAAA-MM-DD."
+
+                        fechaFin.isNotBlank() && !fechaEsValida(fechaFin.trim()) ->
+                            "La fecha de fin debe tener el formato AAAA-MM-DD."
+
+
+                        fechaEsValida(fechaInicio.trim()) &&
+                                fechaEsValida(fechaFin.trim()) &&
+                                fechaFin.trim() < fechaInicio.trim() ->
+                            "La fecha de fin no puede ser anterior a la fecha de inicio."
+
+                        presupuesto.isNotBlank() &&
+                                (presupuesto.replace(',', '.').toDoubleOrNull() == null ||
+                                        presupuesto.replace(',', '.').toDoubleOrNull()!! < 0) ->
+                            "Introduce un presupuesto válido y no negativo."
+
+                        else -> null
+                    }
+
+                    if (errorValidacion == null) {
+                        onGuardarClick()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -211,6 +277,13 @@ fun AnadirViajeScreen(
                 )
             ) {
                 Text("Guardar viaje")
+            }
+            if (errorValidacion != null) {
+                Text(
+                    text = errorValidacion!!,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
 
             Text(
