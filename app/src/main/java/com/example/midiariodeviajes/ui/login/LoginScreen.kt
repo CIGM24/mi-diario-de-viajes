@@ -42,7 +42,8 @@ private val VerdeBoton = Color(0xFF45664A)
 @Composable
 fun LoginScreen(
     onIniciarSesionClick: (String, String) -> Unit = { _, _ -> },
-    onCrearCuentaClick: () -> Unit = {}
+    onCrearCuentaClick: () -> Unit = {},
+    mensajeError: String? = null
 ) {
     var correo by rememberSaveable { mutableStateOf("") }
     var contrasena by rememberSaveable { mutableStateOf("") }
@@ -124,6 +125,16 @@ fun LoginScreen(
                     cursorColor = VerdeOscuro
                 )
             )
+            if (mensajeError != null) {
+                Text(
+                    text = mensajeError,
+                    color = Color.Red,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             Spacer(modifier = Modifier.height(28.dp))
 
