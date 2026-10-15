@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.midiariodeviajes.data.model.ViajeDto
 
 private val VerdeOscuro = Color(0xFF263D32)
 private val VerdeBoton = Color(0xFF45664A)
@@ -48,12 +49,13 @@ private data class ViajePrueba(
 
 @Composable
 fun MisViajesScreen(
+    viajes: List<ViajeDto> = emptyList(),
     onVolverClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onAnadirViajeClick: () -> Unit = {},
     onDetalleViajeClick: (String) -> Unit = {}
 ) {
-    val viajes = remember {
+    /*val viajes = remember {
         listOf(
             ViajePrueba(
                 pais = "Italia",
@@ -77,7 +79,7 @@ fun MisViajesScreen(
                 estado = "Pendiente"
             )
         )
-    }
+    }*/
 
     var filtroSeleccionado by rememberSaveable {
         mutableStateOf("Todos")
@@ -85,8 +87,8 @@ fun MisViajesScreen(
 
     val viajesFiltrados = viajes.filter { viaje ->
         when (filtroSeleccionado) {
-            "Pendientes" -> viaje.estado == "Pendiente"
-            "Realizados" -> viaje.estado == "Realizado"
+            "Pendientes" -> viaje.estado.equals("PENDIENTE", ignoreCase = true)
+            "Realizados" -> viaje.estado.equals("REALIZADO", ignoreCase = true)
             else -> true
         }
     }
@@ -186,7 +188,7 @@ fun MisViajesScreen(
                             defaultElevation = 2.dp
                         ),
                         onClick = {
-                            onDetalleViajeClick(viaje.pais)
+                            onDetalleViajeClick(viaje.id ?: viaje.nombre)
                         }
                     ) {
                         Column(
@@ -197,12 +199,33 @@ fun MisViajesScreen(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Text(
-                                    text = viaje.bandera,
+
+                                    text = when {
+                                        "roma" in viaje.nombre.lowercase() ||
+                                                "italia" in viaje.nombre.lowercase() -> "🇮🇹"
+
+                                        "irlanda" in viaje.nombre.lowercase() -> "🇮🇪"
+
+                                        "barcelona" in viaje.nombre.lowercase() ||
+                                                "españa" in viaje.nombre.lowercase() ||
+                                                "espana" in viaje.nombre.lowercase() -> "🇪🇸"
+
+                                        "francia" in viaje.nombre.lowercase() ||
+                                                "parís" in viaje.nombre.lowercase() ||
+                                                "paris" in viaje.nombre.lowercase() -> "🇫🇷"
+
+                                        "japón" in viaje.nombre.lowercase() ||
+                                                "japon" in viaje.nombre.lowercase() ||
+                                                "tokio" in viaje.nombre.lowercase() -> "🇯🇵"
+
+                                        else -> "🌍"
+                                    },
+
                                     fontSize = 26.sp
                                 )
 
                                 Text(
-                                    text = viaje.pais,
+                                    text = viaje.nombre,
                                     fontSize = 21.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = VerdeOscuro
@@ -212,14 +235,14 @@ fun MisViajesScreen(
                             Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
-                                text = "Ciudad: ${viaje.ciudad}",
+                                text = "Destino: ${viaje.destino}",
                                 color = VerdeOscuro
                             )
 
                             Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
-                                text = "Fechas: ${viaje.fechas}",
+                                text = "Fechas: ${viaje.fechaInicio} - ${viaje.fechaFin}",
                                 color = VerdeOscuro
                             )
 
@@ -227,7 +250,7 @@ fun MisViajesScreen(
 
                             Text(
                                 text = viaje.estado.uppercase(),
-                                color = if (viaje.estado == "Pendiente") {
+                                color = if (viaje.estado.equals("PENDIENTE", ignoreCase = true)) {
                                     VerdeBoton
                                 } else {
                                     Color(0xFF8A6A32)

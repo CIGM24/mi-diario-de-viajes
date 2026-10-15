@@ -9,6 +9,15 @@ import com.example.midiariodeviajes.ui.register.RegisterScreen
 import com.example.midiariodeviajes.ui.welcome.WelcomeScreen
 import com.example.midiariodeviajes.ui.viajes.MisViajesScreen
 import com.example.midiariodeviajes.ui.viajes.formulario.AnadirViajeScreen
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.example.midiariodeviajes.data.AuthRepository
+import kotlinx.coroutines.launch
+import com.example.midiariodeviajes.data.model.ViajeDto
+import com.example.midiariodeviajes.data.api.RetrofitClient
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -20,6 +29,12 @@ private object Rutas {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+
+    val authRepository = remember { AuthRepository() }
+    val coroutineScope = rememberCoroutineScope()
+    var mensajeError by remember { mutableStateOf<String?>(null) }
+    var tokenJwt by remember { mutableStateOf<String?>(null) }
+    var viajes by remember { mutableStateOf<List<ViajeDto>>(emptyList()) }
 
     NavHost(
         navController = navController,
@@ -35,11 +50,35 @@ fun AppNavigation() {
 
         composable(Rutas.LOGIN) {
             LoginScreen(
-                onIniciarSesionClick = { _, _ ->
-                    // TEMPORAL: acceso de prueba sin autenticar.
-                    // Al conectar la API, sustituir por el resultado
-                    // del inicio de sesión real.
-                    navController.navigate(Rutas.MIS_VIAJES)
+                mensajeError = mensajeError,
+                onIniciarSesionClick = { correo, contrasena ->
+                    mensajeError = null
+
+                    coroutineScope.launch {
+                        val resultado = authRepository.iniciarSesion(
+                            correo,
+                            contrasena
+                        )
+
+                        resultado
+                            .onSuccess { token ->
+                                tokenJwt = token
+
+                                val respuestaViajes = RetrofitClient.viajesApi
+                                    .obtenerViajes("Bearer $token")
+
+                                if (respuestaViajes.isSuccessful) {
+                                    viajes = respuestaViajes.body() ?: emptyList()
+                                    navController.navigate(Rutas.MIS_VIAJES)
+                                } else {
+                                    mensajeError = "No se pudieron cargar los viajes (${respuestaViajes.code()})."
+                                }
+                            }
+                            .onFailure { error ->
+                                mensajeError = error.message
+                                    ?: "No se pudo iniciar sesión."
+                            }
+                    }
                 },
                 onCrearCuentaClick = {
                     navController.navigate(Rutas.REGISTRO)
@@ -57,6 +96,7 @@ fun AppNavigation() {
 
         composable(Rutas.MIS_VIAJES) {
             MisViajesScreen(
+                viajes = viajes,
                 onVolverClick = {
                     navController.popBackStack()
                 },

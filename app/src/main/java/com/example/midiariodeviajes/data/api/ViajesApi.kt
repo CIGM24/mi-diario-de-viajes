@@ -16,5 +16,7 @@ interface ViajesApi {
     ): Response<LoginResponseDto>
 
     @GET("api/viajes")
-    suspend fun obtenerViajes(): Response<List<ViajeDto>>
+    suspend fun obtenerViajes(
+        @retrofit2.http.Header("Authorization") token: String
+    ): Response<List<ViajeDto>>
 }
