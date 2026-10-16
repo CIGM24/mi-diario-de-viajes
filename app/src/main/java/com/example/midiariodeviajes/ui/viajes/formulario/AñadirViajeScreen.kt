@@ -67,7 +67,16 @@ private fun fechaEsValida(fecha: String): Boolean {
 @Composable
 fun AnadirViajeScreen(
     onVolverClick: () -> Unit = {},
-    onGuardarClick: () -> Unit = {}
+    onGuardarClick: (
+        String,
+        String,
+        String,
+        String,
+        Double?,
+        String?,
+        String
+    ) -> Unit = { _, _, _, _, _, _, _ -> },
+    mensajeErrorGuardar: String? = null
 ) {
     var nombre by remember { mutableStateOf("") }
     var destino by remember { mutableStateOf("") }
@@ -266,8 +275,20 @@ fun AnadirViajeScreen(
                     }
 
                     if (errorValidacion == null) {
-                        onGuardarClick()
+                        onGuardarClick(
+                            nombre.trim(),
+                            destino.trim(),
+                            fechaInicio.trim(),
+                            fechaFin.trim(),
+                            presupuesto
+                                .takeIf { it.isNotBlank() }
+                                ?.replace(',', '.')
+                                ?.toDoubleOrNull(),
+                            descripcion.trim().takeIf { it.isNotBlank() },
+                            estado
+                        )
                     }
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -281,6 +302,13 @@ fun AnadirViajeScreen(
             if (errorValidacion != null) {
                 Text(
                     text = errorValidacion!!,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            if (mensajeErrorGuardar != null) {
+                Text(
+                    text = mensajeErrorGuardar,
                     color = Color.Red,
                     style = MaterialTheme.typography.bodyMedium
                 )

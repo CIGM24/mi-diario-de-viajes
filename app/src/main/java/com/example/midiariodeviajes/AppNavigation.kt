@@ -112,16 +112,79 @@ fun AppNavigation() {
             )
         }
 
+
         composable("anadir_viaje") {
+            var mensajeErrorGuardar by remember {
+                mutableStateOf<String?>(null)
+            }
+
             AnadirViajeScreen(
+                mensajeErrorGuardar = mensajeErrorGuardar,
                 onVolverClick = {
                     navController.popBackStack()
                 },
                 onGuardarClick = {
-                    // Más adelante conectaremos el guardado real.
+                        nombre,
+                        destino,
+                        fechaInicio,
+                        fechaFin,
+                        presupuesto,
+                        descripcion,
+                        estado ->
+
+                    mensajeErrorGuardar = null
+
+                    coroutineScope.launch {
+                        val token = tokenJwt
+
+                        if (token.isNullOrBlank()) {
+                            mensajeErrorGuardar =
+                                "Tu sesión ha caducado. Inicia sesión de nuevo."
+                            return@launch
+                        }
+
+                        try {
+                            val nuevoViaje = ViajeDto(
+                                nombre = nombre,
+                                destino = destino,
+                                fechaInicio = fechaInicio,
+                                fechaFin = fechaFin,
+                                presupuesto = presupuesto,
+                                descripcion = descripcion,
+                                estado = estado
+                            )
+
+                            val respuesta = RetrofitClient.viajesApi.crearViaje(
+                                token = "Bearer $token",
+                                viaje = nuevoViaje
+                            )
+
+                            if (respuesta.isSuccessful) {
+                                val respuestaViajes =
+                                    RetrofitClient.viajesApi.obtenerViajes(
+                                        "Bearer $token"
+                                    )
+
+                                if (respuestaViajes.isSuccessful) {
+                                    viajes = respuestaViajes.body() ?: emptyList()
+                                    navController.popBackStack()
+                                } else {
+                                    mensajeErrorGuardar =
+                                        "El viaje se guardó, pero no se pudo actualizar la lista."
+                                }
+                            } else {
+                                mensajeErrorGuardar =
+                                    "No se pudo guardar el viaje (${respuesta.code()})."
+                            }
+                        } catch (e: Exception) {
+                            mensajeErrorGuardar =
+                                "No se pudo conectar con el servidor. Comprueba la conexión."
+                        }
+                    }
                 }
             )
         }
+
 
     }
 }

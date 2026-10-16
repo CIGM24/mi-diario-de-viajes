@@ -19,4 +19,10 @@ interface ViajesApi {
     suspend fun obtenerViajes(
         @retrofit2.http.Header("Authorization") token: String
     ): Response<List<ViajeDto>>
+
+    @POST("api/viajes")
+    suspend fun crearViaje(
+        @retrofit2.http.Header("Authorization") token: String,
+        @Body viaje: ViajeDto
+    ): Response<ViajeDto>
 }
