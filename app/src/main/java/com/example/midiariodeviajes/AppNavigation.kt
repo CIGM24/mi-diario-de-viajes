@@ -1,23 +1,24 @@
 package com.example.midiariodeviajes
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.midiariodeviajes.ui.login.LoginScreen
-import com.example.midiariodeviajes.ui.register.RegisterScreen
-import com.example.midiariodeviajes.ui.welcome.WelcomeScreen
-import com.example.midiariodeviajes.ui.viajes.MisViajesScreen
-import com.example.midiariodeviajes.ui.viajes.formulario.AnadirViajeScreen
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.midiariodeviajes.data.AuthRepository
-import kotlinx.coroutines.launch
-import com.example.midiariodeviajes.data.model.ViajeDto
+import com.example.midiariodeviajes.data.RegistroRepository
 import com.example.midiariodeviajes.data.api.RetrofitClient
+import com.example.midiariodeviajes.data.model.ViajeDto
+import com.example.midiariodeviajes.ui.login.LoginScreen
+import com.example.midiariodeviajes.ui.register.RegisterScreen
+import com.example.midiariodeviajes.ui.viajes.MisViajesScreen
+import com.example.midiariodeviajes.ui.viajes.formulario.AnadirViajeScreen
+import com.example.midiariodeviajes.ui.welcome.WelcomeScreen
+import kotlinx.coroutines.launch
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -31,6 +32,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
 
     val authRepository = remember { AuthRepository() }
+    val registroRepository = remember { RegistroRepository() }
     val coroutineScope = rememberCoroutineScope()
     var mensajeError by remember { mutableStateOf<String?>(null) }
     var tokenJwt by remember { mutableStateOf<String?>(null) }
@@ -86,13 +88,47 @@ fun AppNavigation() {
             )
         }
 
+
         composable(Rutas.REGISTRO) {
+            var mensajeErrorRegistro by remember {
+                mutableStateOf<String?>(null)
+            }
+            var mensajeExitoRegistro by remember {
+                mutableStateOf<String?>(null)
+            }
+
             RegisterScreen(
+                onRegistrarseClick = { nombre, correo, contrasena ->
+                    mensajeErrorRegistro = null
+                    mensajeExitoRegistro = null
+
+                    coroutineScope.launch {
+                        val resultado = registroRepository.registrarUsuario(
+                            nombre = nombre,
+                            email = correo,
+                            password = contrasena
+                        )
+
+                        resultado
+                            .onSuccess {
+                                mensajeExitoRegistro =
+                                    "¡Cuenta creada! Ya puedes iniciar sesión."
+                            }
+                            .onFailure { error ->
+                                mensajeErrorRegistro =
+                                    error.message ?: "No se pudo crear la cuenta."
+                            }
+                    }
+                },
                 onIniciarSesionClick = {
                     navController.popBackStack()
-                }
+                },
+                mensajeError = mensajeErrorRegistro,
+                mensajeExito = mensajeExitoRegistro
+
             )
         }
+
 
         composable(Rutas.MIS_VIAJES) {
             MisViajesScreen(

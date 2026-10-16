@@ -40,7 +40,9 @@ private val VerdeBoton = Color(0xFF45664A)
 @Composable
 fun RegisterScreen(
     onRegistrarseClick: (String, String, String) -> Unit = { _, _, _ -> },
-    onIniciarSesionClick: () -> Unit = {}
+    onIniciarSesionClick: () -> Unit = {},
+    mensajeError: String? = null,
+    mensajeExito: String? = null
 ) {
     var nombre by rememberSaveable { mutableStateOf("") }
     var correo by rememberSaveable { mutableStateOf("") }
@@ -169,7 +171,27 @@ fun RegisterScreen(
                 )
             }
 
+
+            if (mensajeError != null) {
+                Text(
+                    text = mensajeError,
+                    color = Color.Red,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (mensajeExito != null) {
+                Text(
+                    text = mensajeExito,
+                    color = VerdeBoton,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
+
 
             TextButton(
                 onClick = onIniciarSesionClick
