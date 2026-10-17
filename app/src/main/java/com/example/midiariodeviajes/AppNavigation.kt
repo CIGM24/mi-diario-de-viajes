@@ -19,12 +19,24 @@ import com.example.midiariodeviajes.ui.viajes.MisViajesScreen
 import com.example.midiariodeviajes.ui.viajes.formulario.AnadirViajeScreen
 import com.example.midiariodeviajes.ui.welcome.WelcomeScreen
 import kotlinx.coroutines.launch
+import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.midiariodeviajes.ui.viajes.DetalleViajeScreen
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
     const val LOGIN = "login"
     const val REGISTRO = "registro"
     const val MIS_VIAJES = "mis_viajes"
+    const val DETALLE_VIAJE = "detalle_viaje"
 }
 
 @Composable
@@ -142,10 +154,48 @@ fun AppNavigation() {
                 onAnadirViajeClick = {
                     navController.navigate("anadir_viaje")
                 },
-                onDetalleViajeClick = { pais ->
-                    // Más adelante conectaremos esta acción con el detalle del viaje.
+                onDetalleViajeClick = { idViaje ->
+                    navController.navigate("${Rutas.DETALLE_VIAJE}/$idViaje")
                 }
             )
+        }
+
+        composable("${Rutas.DETALLE_VIAJE}/{idViaje}") { backStackEntry ->
+
+            val idViaje = backStackEntry.arguments?.getString("idViaje")
+
+            val viajeSeleccionado = viajes.find {
+                it.id == idViaje
+            }
+
+            if (viajeSeleccionado != null) {
+                DetalleViajeScreen(
+                    viaje = viajeSeleccionado,
+                    onVolverClick = {
+                        navController.popBackStack()
+                    }
+                )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFFFFFCF5))
+                        .padding(24.dp)
+                ) {
+                    Text(
+                        text = "No se ha encontrado el viaje seleccionado.",
+                        color = Color(0xFF263D32)
+                    )
+
+                    Button(
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    ) {
+                        Text("Volver a mis viajes")
+                    }
+                }
+            }
         }
 
 
