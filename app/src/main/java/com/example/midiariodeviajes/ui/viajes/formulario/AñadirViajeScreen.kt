@@ -66,6 +66,7 @@ private fun fechaEsValida(fecha: String): Boolean {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnadirViajeScreen(
+    viajeEditar: com.example.midiariodeviajes.data.model.ViajeDto? = null,
     onVolverClick: () -> Unit = {},
     onGuardarClick: (
         String,
@@ -78,13 +79,27 @@ fun AnadirViajeScreen(
     ) -> Unit = { _, _, _, _, _, _, _ -> },
     mensajeErrorGuardar: String? = null
 ) {
-    var nombre by remember { mutableStateOf("") }
-    var destino by remember { mutableStateOf("") }
-    var fechaInicio by remember { mutableStateOf("") }
-    var fechaFin by remember { mutableStateOf("") }
-    var presupuesto by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var estado by remember { mutableStateOf("PENDIENTE") }
+    var nombre by remember(viajeEditar?.id) {
+        mutableStateOf(viajeEditar?.nombre ?: "")
+    }
+    var destino by remember(viajeEditar?.id) {
+        mutableStateOf(viajeEditar?.destino ?: "")
+    }
+    var fechaInicio by remember(viajeEditar?.id) {
+        mutableStateOf(viajeEditar?.fechaInicio ?: "")
+    }
+    var fechaFin by remember(viajeEditar?.id) {
+        mutableStateOf(viajeEditar?.fechaFin ?: "")
+    }
+    var presupuesto by remember(viajeEditar?.id) {
+        mutableStateOf(viajeEditar?.presupuesto?.toString() ?: "")
+    }
+    var descripcion by remember(viajeEditar?.id) {
+        mutableStateOf(viajeEditar?.descripcion ?: "")
+    }
+    var estado by remember(viajeEditar?.id) {
+        mutableStateOf(viajeEditar?.estado ?: "PENDIENTE")
+    }
 
     var errorValidacion by remember { mutableStateOf<String?>(null) }
 
@@ -109,7 +124,7 @@ fun AnadirViajeScreen(
                 }
 
                 Text(
-                    text = "Añadir viaje",
+                    text = if (viajeEditar == null) "Añadir viaje" else "Editar viaje",
                     modifier = Modifier.align(
                         androidx.compose.ui.Alignment.Center
                     ),
@@ -297,7 +312,7 @@ fun AnadirViajeScreen(
                     containerColor = VerdeBoton
                 )
             ) {
-                Text("Guardar viaje")
+                Text(if (viajeEditar == null) "Guardar viaje" else "Guardar cambios")
             }
             if (errorValidacion != null) {
                 Text(

@@ -7,8 +7,12 @@ import com.example.midiariodeviajes.data.model.RegistroRequestDto
 import com.example.midiariodeviajes.data.model.RegistroResponseDto
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface ViajesApi {
 
@@ -32,4 +36,23 @@ interface ViajesApi {
         @retrofit2.http.Header("Authorization") token: String,
         @Body viaje: ViajeDto
     ): Response<ViajeDto>
+
+    @GET("api/viajes/{id}")
+    suspend fun obtenerViaje(
+        @Header("Authorization") token: String,
+        @Path("id") id: String
+    ): Response<ViajeDto>
+
+    @PUT("api/viajes/{id}")
+    suspend fun actualizarViaje(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body viaje: ViajeDto
+    ): Response<ViajeDto>
+
+    @DELETE("api/viajes/{id}")
+    suspend fun eliminarViaje(
+        @Header("Authorization") token: String,
+        @Path("id") id: String
+    ): Response<Void>
 }

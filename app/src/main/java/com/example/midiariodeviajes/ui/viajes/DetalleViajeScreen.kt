@@ -31,7 +31,9 @@ private val FondoTerracota = Color(0xFFF5E5D9)
 @Composable
 fun DetalleViajeScreen(
     viaje: ViajeDto,
-    onVolverClick: () -> Unit
+    onVolverClick: () -> Unit,
+    onEditarClick: () -> Unit = {},
+    onEliminarClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -250,7 +252,7 @@ fun DetalleViajeScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             OutlinedButton(
-                onClick = {},
+                onClick = onEditarClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

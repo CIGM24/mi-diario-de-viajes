@@ -173,6 +173,9 @@ fun AppNavigation() {
                     viaje = viajeSeleccionado,
                     onVolverClick = {
                         navController.popBackStack()
+                    },
+                    onEditarClick = {
+                        navController.navigate("editar_viaje/${viajeSeleccionado.id}")
                     }
                 )
             } else {
@@ -269,6 +272,88 @@ fun AppNavigation() {
                     }
                 }
             )
+        }
+
+        composable("editar_viaje/{idViaje}") { backStackEntry ->
+            val idViaje = backStackEntry.arguments?.getString("idViaje")
+            val viajeEditar = viajes.find { it.id == idViaje }
+
+            if (viajeEditar != null) {
+                var mensajeErrorEditar by remember {
+                    mutableStateOf<String?>(null)
+                }
+
+                AnadirViajeScreen(
+                    viajeEditar = viajeEditar,
+                    mensajeErrorGuardar = mensajeErrorEditar,
+                    onVolverClick = {
+                        navController.popBackStack()
+                    },
+                    onGuardarClick = {
+                            nombre,
+                            destino,
+                            fechaInicio,
+                            fechaFin,
+                            presupuesto,
+                            descripcion,
+                            estado ->
+
+                        mensajeErrorEditar = null
+
+                        coroutineScope.launch {
+                            val token = tokenJwt
+
+                            if (token.isNullOrBlank()) {
+                                mensajeErrorEditar =
+                                    "Tu sesión ha caducado. Inicia sesión de nuevo."
+                                return@launch
+                            }
+
+                            try {
+                                val viajeActualizado = viajeEditar.copy(
+                                    nombre = nombre,
+                                    destino = destino,
+                                    fechaInicio = fechaInicio,
+                                    fechaFin = fechaFin,
+                                    presupuesto = presupuesto,
+                                    descripcion = descripcion,
+                                    estado = estado
+                                )
+
+                                val respuesta =
+                                    RetrofitClient.viajesApi.actualizarViaje(
+                                        token = "Bearer $token",
+                                        id = idViaje!!,
+                                        viaje = viajeActualizado
+                                    )
+
+                                if (respuesta.isSuccessful) {
+                                    val respuestaViajes =
+                                        RetrofitClient.viajesApi.obtenerViajes(
+                                            "Bearer $token"
+                                        )
+
+                                    if (respuestaViajes.isSuccessful) {
+                                        viajes = respuestaViajes.body() ?: emptyList()
+                                        navController.popBackStack()
+                                    } else {
+                                        mensajeErrorEditar =
+                                            "El viaje se actualizó, pero no se pudo refrescar la lista."
+                                    }
+                                } else {
+                                    mensajeErrorEditar =
+                                        "No se pudo actualizar el viaje (${respuesta.code()})."
+                                }
+                            } catch (e: Exception) {
+                                mensajeErrorEditar =
+                                    "No se pudo conectar con el servidor. Comprueba la conexión."
+                            }
+                        }
+                    }
+                )
+            } else {
+                Text("No se ha encontrado el viaje que quieres editar.")
+            }
         }
 
 
