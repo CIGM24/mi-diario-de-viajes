@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Configuración local del IDE
+.idea/
+# Configuración local del backend
+/backend/src/main/resources/application.properties
