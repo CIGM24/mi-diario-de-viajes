@@ -2,12 +2,18 @@ package com.midiariodeviajes.backend.controller;
 
 import com.midiariodeviajes.backend.dto.ViajeRequest;
 import com.midiariodeviajes.backend.model.Viaje;
+import com.midiariodeviajes.backend.service.AlmacenamientoFotosService;
 import com.midiariodeviajes.backend.service.ViajeService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.midiariodeviajes.backend.model.EstadoViaje;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.util.Map;
 
 import java.util.List;
 
@@ -16,9 +22,13 @@ import java.util.List;
 public class ViajeController {
 
     private final ViajeService viajeService;
+    private final AlmacenamientoFotosService almacenamientoFotosService;
 
-    public ViajeController(ViajeService viajeService) {
+    public ViajeController(
+            ViajeService viajeService,
+            AlmacenamientoFotosService almacenamientoFotosService) {
         this.viajeService = viajeService;
+        this.almacenamientoFotosService = almacenamientoFotosService;
     }
 
     @GetMapping
@@ -113,4 +123,40 @@ public class ViajeController {
         return ResponseEntity.ok(viajeGuardado);
 
     }
+
+    @PostMapping(
+            value = "/{id}/foto",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<?> subirFoto(
+            @PathVariable String id,
+            @RequestParam("archivo") MultipartFile archivo,
+            Authentication authentication) {
+
+        String usuarioId = authentication.getName();
+
+        return viajeService.obtenerPorIdYUsuario(id, usuarioId)
+                .map(viaje -> {
+                    try {
+                        String nombreArchivo =
+                                almacenamientoFotosService.guardar(archivo);
+
+                        viaje.setFotoUrl(nombreArchivo);
+                        viajeService.guardar(viaje);
+
+                        return ResponseEntity.ok(
+                                Map.of("fotoUrl", nombreArchivo)
+                        );
+                    } catch (IllegalArgumentException e) {
+                        return ResponseEntity.badRequest()
+                                .body(Map.of("error", e.getMessage()));
+                    } catch (IOException e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(Map.of("error",
+                                        "No se pudo guardar la fotografía."));
+                    }
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 }

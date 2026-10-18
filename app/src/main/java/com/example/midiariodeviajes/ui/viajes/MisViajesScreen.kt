@@ -55,31 +55,6 @@ fun MisViajesScreen(
     onAnadirViajeClick: () -> Unit = {},
     onDetalleViajeClick: (String) -> Unit = {}
 ) {
-    /*val viajes = remember {
-        listOf(
-            ViajePrueba(
-                pais = "Italia",
-                bandera = "🇮🇹",
-                ciudad = "Roma",
-                fechas = "10/06/2027 - 17/06/2027",
-                estado = "Pendiente"
-            ),
-            ViajePrueba(
-                pais = "Francia",
-                bandera = "🇫🇷",
-                ciudad = "París",
-                fechas = "12/04/2026 - 16/04/2026",
-                estado = "Realizado"
-            ),
-            ViajePrueba(
-                pais = "Japón",
-                bandera = "🇯🇵",
-                ciudad = "Tokio",
-                fechas = "05/09/2027 - 20/09/2027",
-                estado = "Pendiente"
-            )
-        )
-    }*/
 
     var filtroSeleccionado by rememberSaveable {
         mutableStateOf("Todos")

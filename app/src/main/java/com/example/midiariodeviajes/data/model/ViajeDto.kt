@@ -25,5 +25,8 @@ data class ViajeDto(
     val presupuesto: Double? = null,
 
     @SerializedName("descripcion")
-    val descripcion: String? = null
+    val descripcion: String? = null,
+
+    @SerializedName("fotoUrl")
+    val fotoUrl: String? = null
 )

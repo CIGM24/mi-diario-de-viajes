@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.midiariodeviajes.data.SesionUsuario
 import com.example.midiariodeviajes.ui.viajes.DetalleViajeScreen
 
 private object Rutas {
@@ -77,6 +78,7 @@ fun AppNavigation() {
                         resultado
                             .onSuccess { token ->
                                 tokenJwt = token
+                                SesionUsuario.tokenJwt = token
 
                                 val respuestaViajes = RetrofitClient.viajesApi
                                     .obtenerViajes("Bearer $token")

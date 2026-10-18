@@ -20,6 +20,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.midiariodeviajes.data.model.ViajeDto
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.midiariodeviajes.data.ApiConfig
+import com.example.midiariodeviajes.data.SesionUsuario
 
 private val FondoCrema = Color(0xFFFFFCF5)
 private val VerdeOscuro = Color(0xFF263D32)
@@ -55,30 +62,43 @@ fun DetalleViajeScreen(
                 )
         ) {
             // Zona reservada para la imagen del destino
+            val contexto = LocalContext.current
+            val nombreFoto = viaje.fotoUrl
+            val token = SesionUsuario.tokenJwt
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(190.dp)
-                    .background(
-                        color = VerdeSalvia,
-                        shape = RoundedCornerShape(24.dp)
-                    ),
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(VerdeSalvia),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "🌍",
-                        fontSize = 64.sp
+                if (!nombreFoto.isNullOrBlank() && !token.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(contexto)
+                            .data("${ApiConfig.BASE_URL}fotos/$nombreFoto")
+                            .addHeader("Authorization", "Bearer $token")
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Fotografía de ${viaje.nombre}",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(190.dp)
                     )
-
-                    Text(
-                        text = "Imagen del destino",
-                        fontSize = 13.sp,
-                        color = VerdeTexto
-                    )
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(text = "🌍", fontSize = 64.sp)
+                        Text(
+                            text = "Imagen del destino",
+                            fontSize = 13.sp,
+                            color = VerdeTexto
+                        )
+                    }
                 }
             }
 

@@ -25,6 +25,8 @@ import java.time.LocalDate;
 
         private String descripcion;
 
+        private String fotoUrl;
+
         private EstadoViaje estado;
 
         public Viaje() {
@@ -102,6 +104,14 @@ import java.time.LocalDate;
 
         public void setDescripcion(String descripcion) {
             this.descripcion = descripcion;
+        }
+
+        public String getFotoUrl() {
+            return fotoUrl;
+        }
+
+        public void setFotoUrl(String fotoUrl) {
+            this.fotoUrl = fotoUrl;
         }
 
         public EstadoViaje getEstado() {
