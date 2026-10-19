@@ -31,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.midiariodeviajes.data.SesionUsuario
 import com.example.midiariodeviajes.ui.viajes.DetalleViajeScreen
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import okhttp3.MultipartBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -43,6 +48,7 @@ private object Rutas {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val contexto = LocalContext.current
 
     val authRepository = remember { AuthRepository() }
     val registroRepository = remember { RegistroRepository() }
@@ -178,6 +184,96 @@ fun AppNavigation() {
                     },
                     onEditarClick = {
                         navController.navigate("editar_viaje/${viajeSeleccionado.id}")
+                    },
+                    onSubirFotoClick = { uri ->
+                        coroutineScope.launch {
+                            val token = tokenJwt ?: SesionUsuario.tokenJwt
+
+                            if (token.isNullOrBlank()) {
+                                Toast.makeText(
+                                    contexto,
+                                    "Tu sesión ha caducado. Inicia sesión de nuevo.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@launch
+                            }
+
+                            try {
+                                val tipoMime = contexto.contentResolver.getType(uri)
+                                    ?: "image/jpeg"
+
+                                val extension = when (tipoMime) {
+                                    "image/png" -> ".png"
+                                    "image/webp" -> ".webp"
+                                    else -> ".jpg"
+                                }
+
+                                val bytes = contexto.contentResolver
+                                    .openInputStream(uri)
+                                    ?.use { it.readBytes() }
+                                    ?: throw Exception("No se pudo leer la fotografía.")
+
+                                if (bytes.size > 5 * 1024 * 1024) {
+                                    Toast.makeText(
+                                        contexto,
+                                        "La fotografía no puede superar los 5 MB.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    return@launch
+                                }
+
+                                val cuerpo = bytes.toRequestBody(
+                                    tipoMime.toMediaTypeOrNull()
+                                )
+
+                                val archivo = MultipartBody.Part.createFormData(
+                                    "archivo",
+                                    "foto$extension",
+                                    cuerpo
+                                )
+
+                                val respuesta = RetrofitClient.viajesApi.subirFoto(
+                                    token = "Bearer $token",
+                                    id = viajeSeleccionado.id ?: return@launch,
+                                    archivo = archivo
+                                )
+
+                                if (respuesta.isSuccessful) {
+                                    val respuestaViajes =
+                                        RetrofitClient.viajesApi.obtenerViajes(
+                                            "Bearer $token"
+                                        )
+
+                                    if (respuestaViajes.isSuccessful) {
+                                        viajes = respuestaViajes.body() ?: emptyList()
+
+                                        Toast.makeText(
+                                            contexto,
+                                            "Fotografía guardada correctamente.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            contexto,
+                                            "La foto se guardó, pero no se pudo actualizar el viaje.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        contexto,
+                                        "No se pudo subir la foto (${respuesta.code()}).",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    contexto,
+                                    "Error al subir la fotografía: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 )
             } else {

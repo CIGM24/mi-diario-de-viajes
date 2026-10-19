@@ -27,6 +27,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.midiariodeviajes.data.ApiConfig
 import com.example.midiariodeviajes.data.SesionUsuario
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 private val FondoCrema = Color(0xFFFFFCF5)
 private val VerdeOscuro = Color(0xFF263D32)
@@ -40,8 +47,26 @@ fun DetalleViajeScreen(
     viaje: ViajeDto,
     onVolverClick: () -> Unit,
     onEditarClick: () -> Unit = {},
-    onEliminarClick: () -> Unit = {}
+    onEliminarClick: () -> Unit = {},
+    onSubirFotoClick: (android.net.Uri) -> Unit = {}
 ) {
+    val contexto = LocalContext.current
+    val nombreFoto = viaje.fotoUrl
+    val token = SesionUsuario.tokenJwt
+
+    var fotoSeleccionada by remember {
+        mutableStateOf<android.net.Uri?>(null)
+    }
+
+    val selectorFoto = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            fotoSeleccionada = uri
+            onSubirFotoClick(uri)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,10 +87,6 @@ fun DetalleViajeScreen(
                 )
         ) {
             // Zona reservada para la imagen del destino
-            val contexto = LocalContext.current
-            val nombreFoto = viaje.fotoUrl
-            val token = SesionUsuario.tokenJwt
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -100,6 +121,22 @@ fun DetalleViajeScreen(
                         )
                     }
                 }
+            }
+
+            OutlinedButton(
+                onClick = {
+                    selectorFoto.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text("📷 Elegir fotografía")
             }
 
             // Datos del viaje
