@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.example.midiariodeviajes.data.model.LugarDto
 
 private val FondoCrema = Color(0xFFFFFCF5)
 private val VerdeOscuro = Color(0xFF263D32)
@@ -48,7 +49,10 @@ fun DetalleViajeScreen(
     onVolverClick: () -> Unit,
     onEditarClick: () -> Unit = {},
     onEliminarClick: () -> Unit = {},
-    onSubirFotoClick: (android.net.Uri) -> Unit = {}
+    onSubirFotoClick: (android.net.Uri) -> Unit = {},
+    lugares: List<LugarDto> = emptyList(),
+    cargandoLugares: Boolean = false,
+    errorLugares: String? = null
 ) {
     val contexto = LocalContext.current
     val nombreFoto = viaje.fotoUrl
@@ -242,46 +246,121 @@ fun DetalleViajeScreen(
                 color = VerdeTexto
             )
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 1.dp
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+            if (cargandoLugares) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(18.dp)
                 ) {
                     Text(
-                        text = "🗺️",
-                        fontSize = 34.sp
-                    )
-
-                    Text(
-                        text = "Tu próxima aventura empieza aquí",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = VerdeOscuro
-                    )
-
-                    Text(
-                        text = "Todavía no hay lugares para mostrar.",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-
-                    Text(
-                        text = "Aquí aparecerán tus lugares de interés.",
-                        fontSize = 13.sp,
+                        text = "Cargando lugares de interés...",
+                        modifier = Modifier.padding(20.dp),
                         color = VerdeTexto
                     )
+                }
+            } else if (errorLugares != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = FondoTerracota
+                    ),
+                    shape = RoundedCornerShape(18.dp)
+                ) {
+                    Text(
+                        text = errorLugares.orEmpty(),
+                        modifier = Modifier.padding(20.dp),
+                        color = VerdeOscuro
+                    )
+                }
+            } else if (lugares.isEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 1.dp
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(text = "🗺️", fontSize = 34.sp)
+
+                        Text(
+                            text = "Tu próxima aventura empieza aquí",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = VerdeOscuro
+                        )
+
+                        Text(
+                            text = "Todavía no hay lugares para mostrar.",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+
+                        Text(
+                            text = "Añade los lugares que quieres visitar.",
+                            fontSize = 13.sp,
+                            color = VerdeTexto
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    lugares.forEachIndexed { indice, lugar ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White
+                            ),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 1.dp
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "${indice + 1}. ${lugar.nombre}",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = VerdeOscuro
+                                )
+
+                                if (!lugar.descripcion.isNullOrBlank()) {
+                                    Text(
+                                        text = lugar.descripcion,
+                                        fontSize = 14.sp,
+                                        color = VerdeTexto
+                                    )
+                                }
+
+                                if (!lugar.direccion.isNullOrBlank()) {
+                                    Text(
+                                        text = "📍 ${lugar.direccion}",
+                                        fontSize = 13.sp,
+                                        color = VerdeTexto
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

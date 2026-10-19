@@ -36,6 +36,8 @@ import androidx.compose.ui.platform.LocalContext
 import okhttp3.MultipartBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import androidx.compose.runtime.LaunchedEffect
+import com.example.midiariodeviajes.data.model.LugarDto
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -164,6 +166,58 @@ fun AppNavigation() {
                 },
                 onDetalleViajeClick = { idViaje ->
                     navController.navigate("${Rutas.DETALLE_VIAJE}/$idViaje")
+                },
+                onEliminarViajeClick = { idViaje ->
+                    coroutineScope.launch {
+                        val token = tokenJwt ?: SesionUsuario.tokenJwt
+
+                        if (token.isNullOrBlank()) {
+                            Toast.makeText(
+                                contexto,
+                                "La sesión ha caducado. Inicia sesión de nuevo.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            return@launch
+                        }
+
+                        try {
+                            val respuesta = RetrofitClient.viajesApi.eliminarViaje(
+                                token = "Bearer $token",
+                                id = idViaje
+                            )
+
+                            if (respuesta.isSuccessful) {
+                                // Actualizamos la lista en memoria inmediatamente.
+                                viajes = viajes.filterNot { it.id == idViaje }
+
+                                // Intentamos sincronizarla con el servidor.
+                                val respuestaViajes =
+                                    RetrofitClient.viajesApi.obtenerViajes("Bearer $token")
+
+                                if (respuestaViajes.isSuccessful) {
+                                    viajes = respuestaViajes.body() ?: emptyList()
+                                }
+
+                                Toast.makeText(
+                                    contexto,
+                                    "Viaje eliminado",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    contexto,
+                                    "No se pudo eliminar el viaje (${respuesta.code()})",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(
+                                contexto,
+                                "Error de conexión al eliminar el viaje",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
                 }
             )
         }
@@ -172,6 +226,50 @@ fun AppNavigation() {
 
             val idViaje = backStackEntry.arguments?.getString("idViaje")
 
+            var lugares by remember(idViaje) {
+                mutableStateOf<List<LugarDto>>(emptyList())
+            }
+            var cargandoLugares by remember(idViaje) {
+                mutableStateOf(true)
+            }
+            var errorLugares by remember(idViaje) {
+                mutableStateOf<String?>(null)
+            }
+
+            LaunchedEffect(idViaje, tokenJwt) {
+                val token = tokenJwt ?: SesionUsuario.tokenJwt
+
+                if (idViaje.isNullOrBlank()) {
+                    errorLugares = "No se ha encontrado el viaje."
+                    cargandoLugares = false
+                    return@LaunchedEffect
+                }
+
+                if (token.isNullOrBlank()) {
+                    errorLugares = "Tu sesión ha caducado. Inicia sesión de nuevo."
+                    cargandoLugares = false
+                    return@LaunchedEffect
+                }
+
+                try {
+                    val respuesta = RetrofitClient.viajesApi.obtenerLugares(
+                        token = "Bearer $token",
+                        viajeId = idViaje
+                    )
+
+                    if (respuesta.isSuccessful) {
+                        lugares = respuesta.body() ?: emptyList()
+                    } else {
+                        errorLugares =
+                            "No se pudieron cargar los lugares (${respuesta.code()})."
+                    }
+                } catch (e: Exception) {
+                    errorLugares = "Error de conexión al cargar los lugares."
+                } finally {
+                    cargandoLugares = false
+                }
+            }
+
             val viajeSeleccionado = viajes.find {
                 it.id == idViaje
             }
@@ -179,6 +277,9 @@ fun AppNavigation() {
             if (viajeSeleccionado != null) {
                 DetalleViajeScreen(
                     viaje = viajeSeleccionado,
+                    lugares = lugares,
+                    cargandoLugares = cargandoLugares,
+                    errorLugares = errorLugares,
                     onVolverClick = {
                         navController.popBackStack()
                     },

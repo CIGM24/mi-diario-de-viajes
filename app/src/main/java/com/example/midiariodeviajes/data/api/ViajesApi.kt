@@ -2,6 +2,7 @@ package com.example.midiariodeviajes.data.api
 
 import com.example.midiariodeviajes.data.model.LoginRequestDto
 import com.example.midiariodeviajes.data.model.LoginResponseDto
+import com.example.midiariodeviajes.data.model.LugarDto
 import com.example.midiariodeviajes.data.model.ViajeDto
 import com.example.midiariodeviajes.data.model.RegistroRequestDto
 import com.example.midiariodeviajes.data.model.RegistroResponseDto
@@ -56,6 +57,32 @@ interface ViajesApi {
 
     @DELETE("api/viajes/{id}")
     suspend fun eliminarViaje(
+        @Header("Authorization") token: String,
+        @Path("id") id: String
+    ): Response<Void>
+
+    @GET("api/viajes/{viajeId}/lugares")
+    suspend fun obtenerLugares(
+        @Header("Authorization") token: String,
+        @Path("viajeId") viajeId: String
+    ): Response<List<LugarDto>>
+
+    @POST("api/viajes/{viajeId}/lugares")
+    suspend fun crearLugar(
+        @Header("Authorization") token: String,
+        @Path("viajeId") viajeId: String,
+        @Body lugar: LugarDto
+    ): Response<LugarDto>
+
+    @PUT("api/lugares/{id}")
+    suspend fun actualizarLugar(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body lugar: LugarDto
+    ): Response<LugarDto>
+
+    @DELETE("api/lugares/{id}")
+    suspend fun eliminarLugar(
         @Header("Authorization") token: String,
         @Path("id") id: String
     ): Response<Void>

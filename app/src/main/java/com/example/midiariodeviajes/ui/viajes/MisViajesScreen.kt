@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.midiariodeviajes.data.model.ViajeDto
+import androidx.compose.material3.AlertDialog
 
 private val VerdeOscuro = Color(0xFF263D32)
 private val VerdeBoton = Color(0xFF45664A)
@@ -53,12 +54,15 @@ fun MisViajesScreen(
     onVolverClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onAnadirViajeClick: () -> Unit = {},
-    onDetalleViajeClick: (String) -> Unit = {}
+    onDetalleViajeClick: (String) -> Unit = {},
+    onEliminarViajeClick: (String) -> Unit = {}
 ) {
 
     var filtroSeleccionado by rememberSaveable {
         mutableStateOf("Todos")
     }
+
+    var viajePendienteEliminar by remember { mutableStateOf<ViajeDto?>(null) }
 
     val viajesFiltrados = viajes.filter { viaje ->
         when (filtroSeleccionado) {
@@ -170,11 +174,11 @@ fun MisViajesScreen(
                             modifier = Modifier.padding(18.dp)
                         ) {
                             Row(
+                                modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Text(
-
                                     text = when {
                                         "roma" in viaje.nombre.lowercase() ||
                                                 "italia" in viaje.nombre.lowercase() -> "🇮🇹"
@@ -195,16 +199,25 @@ fun MisViajesScreen(
 
                                         else -> "🌍"
                                     },
-
                                     fontSize = 26.sp
                                 )
 
                                 Text(
                                     text = viaje.nombre,
+                                    modifier = Modifier.weight(1f),
                                     fontSize = 21.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = VerdeOscuro
                                 )
+
+                                TextButton(
+                                    onClick = { viajePendienteEliminar = viaje }
+                                ) {
+                                    Text(
+                                        text = "🗑️",
+                                        fontSize = 20.sp
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(4.dp))
@@ -266,5 +279,49 @@ fun MisViajesScreen(
                 }
             }
         }
+    }
+
+    viajePendienteEliminar?.let { viaje ->
+        AlertDialog(
+            onDismissRequest = {
+                viajePendienteEliminar = null
+            },
+            title = {
+                Text("Eliminar viaje")
+            },
+            text = {
+                Text(
+                    "¿Seguro que quieres eliminar \"${viaje.nombre}\"? " +
+                            "Esta acción no se puede deshacer."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val idViaje = viaje.id
+
+                        if (idViaje != null) {
+                            onEliminarViajeClick(idViaje)
+                        }
+
+                        viajePendienteEliminar = null
+                    }
+                ) {
+                    Text(
+                        "Eliminar",
+                        color = Color.Red
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viajePendienteEliminar = null
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
