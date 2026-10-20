@@ -1,4 +1,3 @@
-
 package com.midiariodeviajes.backend.service;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +13,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 
 @Service
 public class AlmacenamientoFotosService {
@@ -81,6 +82,21 @@ public class AlmacenamientoFotosService {
         }
 
         return nombreArchivo;
+    }
+
+    public Resource cargar(String nombreArchivo) throws IOException {
+        Path archivo = directorioFotos.resolve(nombreArchivo).normalize();
+
+        if (!archivo.startsWith(directorioFotos)
+                || !directorioFotos.equals(archivo.getParent())) {
+            throw new IllegalArgumentException("Nombre de archivo no válido.");
+        }
+
+        if (!Files.isRegularFile(archivo) || !Files.isReadable(archivo)) {
+            throw new IOException("No se encontró la fotografía.");
+        }
+
+        return new UrlResource(archivo.toUri());
     }
 }
 

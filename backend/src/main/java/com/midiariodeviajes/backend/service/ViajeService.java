@@ -59,4 +59,9 @@ public class ViajeService {
 
         return true;
     }
+    public Optional<Viaje> obtenerPorFotoYUsuario(
+            String nombreArchivo,
+            String usuarioId) {
+        return viajeRepository.findByFotoUrlAndUsuarioId(nombreArchivo, usuarioId);
+    }
 }
