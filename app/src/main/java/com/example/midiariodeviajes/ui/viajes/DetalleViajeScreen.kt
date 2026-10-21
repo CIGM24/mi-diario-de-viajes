@@ -1,5 +1,8 @@
 package com.example.midiariodeviajes.ui.viajes
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,29 +15,27 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.midiariodeviajes.data.model.ViajeDto
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.midiariodeviajes.data.ApiConfig
 import com.example.midiariodeviajes.data.SesionUsuario
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.example.midiariodeviajes.data.model.LugarDto
+import com.example.midiariodeviajes.data.model.ViajeDto
+import com.example.midiariodeviajes.ui.viajes.formulario.AnadirLugarDialog
 
 private val FondoCrema = Color(0xFFFFFCF5)
 private val VerdeOscuro = Color(0xFF263D32)
@@ -50,6 +51,7 @@ fun DetalleViajeScreen(
     onEditarClick: () -> Unit = {},
     onEliminarClick: () -> Unit = {},
     onSubirFotoClick: (android.net.Uri) -> Unit = {},
+    onAñadirLugarClick: (LugarDto) -> Unit = {},
     lugares: List<LugarDto> = emptyList(),
     cargandoLugares: Boolean = false,
     errorLugares: String? = null
@@ -60,6 +62,10 @@ fun DetalleViajeScreen(
 
     var fotoSeleccionada by remember {
         mutableStateOf<android.net.Uri?>(null)
+    }
+
+    var mostrarDialogoLugar by remember(viaje.id) {
+        mutableStateOf(false)
     }
 
     val selectorFoto = rememberLauncherForActivityResult(
@@ -79,9 +85,7 @@ fun DetalleViajeScreen(
             .padding(horizontal = 20.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
-
-        // Cabecera del viaje: imagen compacta y datos debajo
+        // Cabecera del viaje
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -90,7 +94,6 @@ fun DetalleViajeScreen(
                     shape = RoundedCornerShape(24.dp)
                 )
         ) {
-            // Zona reservada para la imagen del destino
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,7 +146,6 @@ fun DetalleViajeScreen(
                 Text("📷 Elegir fotografía")
             }
 
-            // Datos del viaje
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -364,9 +366,12 @@ fun DetalleViajeScreen(
                 }
             }
 
-            // Preparado visualmente para la futura función
             OutlinedButton(
-                onClick = {},
+                onClick = {
+                    if (!viaje.id.isNullOrBlank()) {
+                        mostrarDialogoLugar = true
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -432,5 +437,18 @@ fun DetalleViajeScreen(
             }
         }
     }
-}
 
+    val viajeId = viaje.id
+    if (mostrarDialogoLugar && !viajeId.isNullOrBlank()) {
+        AnadirLugarDialog(
+            viajeId = viajeId,
+            onDismiss = {
+                mostrarDialogoLugar = false
+            },
+            onGuardar = { lugar ->
+                onAñadirLugarClick(lugar)
+                mostrarDialogoLugar = false
+            }
+        )
+    }
+}

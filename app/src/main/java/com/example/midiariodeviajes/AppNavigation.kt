@@ -375,6 +375,72 @@ fun AppNavigation() {
                                 ).show()
                             }
                         }
+                    },
+                    onAñadirLugarClick = { lugar ->
+                        coroutineScope.launch {
+                            val token = tokenJwt ?: SesionUsuario.tokenJwt
+
+                            if (token.isNullOrBlank()) {
+                                Toast.makeText(
+                                    contexto,
+                                    "Tu sesión ha caducado. Inicia sesión de nuevo.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@launch
+                            }
+
+                            val viajeIdActual = viajeSeleccionado.id
+
+                            if (viajeIdActual.isNullOrBlank()) {
+                                Toast.makeText(
+                                    contexto,
+                                    "No se ha encontrado el viaje.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@launch
+                            }
+
+                            try {
+                                val respuesta = RetrofitClient.viajesApi.crearLugar(
+                                    token = "Bearer $token",
+                                    viajeId = viajeIdActual,
+                                    lugar = lugar
+                                )
+
+                                if (respuesta.isSuccessful) {
+                                    val lugarGuardado = respuesta.body()
+
+                                    if (lugarGuardado != null) {
+                                        lugares = lugares + lugarGuardado
+                                        errorLugares = null
+
+                                        Toast.makeText(
+                                            contexto,
+                                            "Lugar añadido correctamente.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            contexto,
+                                            "El servidor guardó el lugar, pero no devolvió sus datos.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        contexto,
+                                        "No se pudo guardar el lugar (${respuesta.code()}).",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    contexto,
+                                    "Error de conexión al guardar el lugar.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 )
             } else {
