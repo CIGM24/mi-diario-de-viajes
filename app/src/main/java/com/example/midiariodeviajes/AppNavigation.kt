@@ -441,6 +441,65 @@ fun AppNavigation() {
                                 ).show()
                             }
                         }
+                    },
+                    onEditarLugarClick = { lugar ->
+                        coroutineScope.launch {
+                            val token = tokenJwt ?: SesionUsuario.tokenJwt
+
+                            if (token.isNullOrBlank()) {
+                                Toast.makeText(
+                                    contexto,
+                                    "Tu sesión ha caducado. Inicia sesión de nuevo.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@launch
+                            }
+
+                            val lugarId = lugar.id
+
+                            if (lugarId.isNullOrBlank()) {
+                                Toast.makeText(
+                                    contexto,
+                                    "No se ha encontrado el lugar.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@launch
+                            }
+
+                            try {
+                                val respuesta = RetrofitClient.viajesApi.actualizarLugar(
+                                    token = "Bearer $token",
+                                    id = lugarId,
+                                    lugar = lugar
+                                )
+
+                                if (respuesta.isSuccessful) {
+                                    val lugarActualizado = respuesta.body() ?: lugar
+
+                                    lugares = lugares.map { existente ->
+                                        if (existente.id == lugarId) lugarActualizado else existente
+                                    }
+
+                                    Toast.makeText(
+                                        contexto,
+                                        "Lugar actualizado correctamente.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        contexto,
+                                        "No se pudo actualizar el lugar (${respuesta.code()}).",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    contexto,
+                                    "Error de conexión al actualizar el lugar.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 )
             } else {

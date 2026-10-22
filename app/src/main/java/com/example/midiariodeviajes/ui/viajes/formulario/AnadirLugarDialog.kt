@@ -23,19 +23,34 @@ import com.example.midiariodeviajes.data.model.LugarDto
 @Composable
 fun AnadirLugarDialog(
     viajeId: String,
+    lugarEditar: LugarDto? = null,
     onDismiss: () -> Unit,
     onGuardar: (LugarDto) -> Unit
 ) {
-    var nombre by rememberSaveable { mutableStateOf("") }
-    var descripcion by rememberSaveable { mutableStateOf("") }
-    var direccion by rememberSaveable { mutableStateOf("") }
-    var latitud by rememberSaveable { mutableStateOf("") }
-    var longitud by rememberSaveable { mutableStateOf("") }
-    var error by rememberSaveable { mutableStateOf<String?>(null) }
+    var nombre by rememberSaveable(lugarEditar?.id) {
+        mutableStateOf(lugarEditar?.nombre.orEmpty())
+    }
+    var descripcion by rememberSaveable(lugarEditar?.id) {
+        mutableStateOf(lugarEditar?.descripcion.orEmpty())
+    }
+    var direccion by rememberSaveable(lugarEditar?.id) {
+        mutableStateOf(lugarEditar?.direccion.orEmpty())
+    }
+    var latitud by rememberSaveable(lugarEditar?.id) {
+        mutableStateOf(lugarEditar?.latitud?.toString().orEmpty())
+    }
+    var longitud by rememberSaveable(lugarEditar?.id) {
+        mutableStateOf(lugarEditar?.longitud?.toString().orEmpty())
+    }
+    var error by rememberSaveable(lugarEditar?.id) {
+        mutableStateOf<String?>(null)
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Añadir lugar") },
+        title = {
+            Text(if (lugarEditar == null) "Añadir lugar" else "Editar lugar")
+        },
         text = {
             Column(
                 modifier = Modifier
@@ -128,6 +143,7 @@ fun AnadirLugarDialog(
                     if (error == null) {
                         onGuardar(
                             LugarDto(
+                                id = lugarEditar?.id,
                                 viajeId = viajeId,
                                 nombre = nombre.trim(),
                                 descripcion = descripcion.trim()
@@ -141,7 +157,7 @@ fun AnadirLugarDialog(
                     }
                 }
             ) {
-                Text("Guardar")
+                Text(if (lugarEditar == null) "Guardar" else "Guardar cambios")
             }
         },
         dismissButton = {

@@ -36,6 +36,7 @@ import com.example.midiariodeviajes.data.SesionUsuario
 import com.example.midiariodeviajes.data.model.LugarDto
 import com.example.midiariodeviajes.data.model.ViajeDto
 import com.example.midiariodeviajes.ui.viajes.formulario.AnadirLugarDialog
+import androidx.compose.material3.TextButton
 
 private val FondoCrema = Color(0xFFFFFCF5)
 private val VerdeOscuro = Color(0xFF263D32)
@@ -52,6 +53,7 @@ fun DetalleViajeScreen(
     onEliminarClick: () -> Unit = {},
     onSubirFotoClick: (android.net.Uri) -> Unit = {},
     onAñadirLugarClick: (LugarDto) -> Unit = {},
+    onEditarLugarClick: (LugarDto) -> Unit = {},
     lugares: List<LugarDto> = emptyList(),
     cargandoLugares: Boolean = false,
     errorLugares: String? = null
@@ -66,6 +68,10 @@ fun DetalleViajeScreen(
 
     var mostrarDialogoLugar by remember(viaje.id) {
         mutableStateOf(false)
+    }
+
+    var lugarEnEdicion by remember(viaje.id) {
+        mutableStateOf<LugarDto?>(null)
     }
 
     val selectorFoto = rememberLauncherForActivityResult(
@@ -251,9 +257,7 @@ fun DetalleViajeScreen(
             if (cargandoLugares) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
                     shape = RoundedCornerShape(18.dp)
                 ) {
                     Text(
@@ -280,12 +284,8 @@ fun DetalleViajeScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 1.dp
-                    )
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -295,20 +295,17 @@ fun DetalleViajeScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(text = "🗺️", fontSize = 34.sp)
-
                         Text(
                             text = "Tu próxima aventura empieza aquí",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = VerdeOscuro
                         )
-
                         Text(
                             text = "Todavía no hay lugares para mostrar.",
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
-
                         Text(
                             text = "Añade los lugares que quieres visitar.",
                             fontSize = 13.sp,
@@ -325,12 +322,8 @@ fun DetalleViajeScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.White
-                            ),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 1.dp
-                            )
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -338,12 +331,26 @@ fun DetalleViajeScreen(
                                     .padding(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text(
-                                    text = "${indice + 1}. ${lugar.nombre}",
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = VerdeOscuro
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${indice + 1}. ${lugar.nombre}",
+                                        modifier = Modifier.weight(1f),
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = VerdeOscuro
+                                    )
+
+                                    TextButton(
+                                        onClick = {
+                                            lugarEnEdicion = lugar
+                                        }
+                                    ) {
+                                        Text("Editar", color = VerdeTexto)
+                                    }
+                                }
 
                                 if (!lugar.descripcion.isNullOrBlank()) {
                                     Text(
@@ -439,15 +446,29 @@ fun DetalleViajeScreen(
     }
 
     val viajeId = viaje.id
-    if (mostrarDialogoLugar && !viajeId.isNullOrBlank()) {
+
+    if (
+        (mostrarDialogoLugar || lugarEnEdicion != null) &&
+        !viajeId.isNullOrBlank()
+    ) {
+        val lugarEditado = lugarEnEdicion
+
         AnadirLugarDialog(
             viajeId = viajeId,
+            lugarEditar = lugarEditado,
             onDismiss = {
                 mostrarDialogoLugar = false
+                lugarEnEdicion = null
             },
             onGuardar = { lugar ->
-                onAñadirLugarClick(lugar)
+                if (lugarEditado == null) {
+                    onAñadirLugarClick(lugar)
+                } else {
+                    onEditarLugarClick(lugar)
+                }
+
                 mostrarDialogoLugar = false
+                lugarEnEdicion = null
             }
         )
     }
