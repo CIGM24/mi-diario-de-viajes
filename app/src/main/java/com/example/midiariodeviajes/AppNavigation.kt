@@ -93,7 +93,12 @@ fun AppNavigation() {
 
                                 if (respuestaViajes.isSuccessful) {
                                     viajes = respuestaViajes.body() ?: emptyList()
-                                    navController.navigate(Rutas.MIS_VIAJES)
+                                    navController.navigate(Rutas.MIS_VIAJES) {
+                                        popUpTo(Rutas.LOGIN) {
+                                            inclusive = true
+                                        }
+                                        launchSingleTop = true
+                                    }
                                 } else {
                                     mensajeError = "No se pudieron cargar los viajes (${respuestaViajes.code()})."
                                 }
@@ -159,7 +164,17 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onPerfilClick = {
-                    // Más adelante añadiremos el perfil y el cierre de sesión.
+                    tokenJwt = null
+                    SesionUsuario.tokenJwt = null
+                    viajes = emptyList()
+                    mensajeError = null
+
+                    navController.navigate(Rutas.BIENVENIDA) {
+                        popUpTo(Rutas.BIENVENIDA) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 },
                 onAnadirViajeClick = {
                     navController.navigate("anadir_viaje")

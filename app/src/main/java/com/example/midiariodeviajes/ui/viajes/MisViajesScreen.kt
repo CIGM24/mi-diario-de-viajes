@@ -109,8 +109,8 @@ fun MisViajesScreen(
 
                 TextButton(onClick = onPerfilClick) {
                     Text(
-                        text = "♙",
-                        fontSize = 26.sp,
+                        text = "Cerrar sesión",
+                        fontSize = 12.sp,
                         color = VerdeOscuro
                     )
                 }
