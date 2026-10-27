@@ -2,6 +2,7 @@ package com.midiariodeviajes.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.AssertTrue;
 
 public class LugarRequest {
 
@@ -60,5 +61,20 @@ public class LugarRequest {
 
     public void setLongitud(Double longitud) {
         this.longitud = longitud;
+    }
+
+    @AssertTrue(message = "La latitud debe estar entre -90 y 90")
+    public boolean isLatitudEnRango() {
+        return latitud == null || (latitud >= -90.0 && latitud <= 90.0);
+    }
+
+    @AssertTrue(message = "La longitud debe estar entre -180 y 180")
+    public boolean isLongitudEnRango() {
+        return longitud == null || (longitud >= -180.0 && longitud <= 180.0);
+    }
+
+    @AssertTrue(message = "Debes indicar tanto la latitud como la longitud")
+    public boolean isParDeCoordenadasValido() {
+        return (latitud == null) == (longitud == null);
     }
 }
