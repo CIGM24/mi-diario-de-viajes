@@ -38,6 +38,8 @@ import com.example.midiariodeviajes.data.model.ViajeDto
 import com.example.midiariodeviajes.ui.viajes.formulario.AnadirLugarDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
+import android.content.Intent
+import android.net.Uri
 
 private val FondoCrema = Color(0xFFFFFCF5)
 private val VerdeOscuro = Color(0xFF263D32)
@@ -328,8 +330,12 @@ fun DetalleViajeScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White
+                            ),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 1.dp
+                            )
                         ) {
                             Column(
                                 modifier = Modifier
@@ -380,6 +386,35 @@ fun DetalleViajeScreen(
                                         fontSize = 13.sp,
                                         color = VerdeTexto
                                     )
+                                }
+
+                                val consultaMapa = when {
+                                    lugar.latitud != null && lugar.longitud != null ->
+                                        "${lugar.latitud},${lugar.longitud}"
+
+                                    !lugar.direccion.isNullOrBlank() ->
+                                        "${lugar.nombre}, ${lugar.direccion}"
+
+                                    else -> null
+                                }
+
+                                if (consultaMapa != null) {
+                                    TextButton(
+                                        onClick = {
+                                            val mapsUri = Uri.parse(
+                                                "https://www.google.com/maps/search/"
+                                            ).buildUpon()
+                                                .appendQueryParameter("api", "1")
+                                                .appendQueryParameter("query", consultaMapa)
+                                                .build()
+
+                                            contexto.startActivity(
+                                                Intent(Intent.ACTION_VIEW, mapsUri)
+                                            )
+                                        }
+                                    ) {
+                                        Text("Abrir en Google Maps", color = VerdeTexto)
+                                    }
                                 }
                             }
                         }
