@@ -37,6 +37,7 @@ import com.example.midiariodeviajes.data.model.LugarDto
 import com.example.midiariodeviajes.data.model.ViajeDto
 import com.example.midiariodeviajes.ui.viajes.formulario.AnadirLugarDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 
 private val FondoCrema = Color(0xFFFFFCF5)
 private val VerdeOscuro = Color(0xFF263D32)
@@ -54,6 +55,7 @@ fun DetalleViajeScreen(
     onSubirFotoClick: (android.net.Uri) -> Unit = {},
     onAñadirLugarClick: (LugarDto) -> Unit = {},
     onEditarLugarClick: (LugarDto) -> Unit = {},
+    onEliminarLugarClick: (String) -> Unit = {},
     lugares: List<LugarDto> = emptyList(),
     cargandoLugares: Boolean = false,
     errorLugares: String? = null
@@ -71,6 +73,10 @@ fun DetalleViajeScreen(
     }
 
     var lugarEnEdicion by remember(viaje.id) {
+        mutableStateOf<LugarDto?>(null)
+    }
+
+    var lugarPendienteEliminar by remember(viaje.id) {
         mutableStateOf<LugarDto?>(null)
     }
 
@@ -350,6 +356,14 @@ fun DetalleViajeScreen(
                                     ) {
                                         Text("Editar", color = VerdeTexto)
                                     }
+
+                                    TextButton(
+                                        onClick = {
+                                            lugarPendienteEliminar = lugar
+                                        }
+                                    ) {
+                                        Text("Eliminar", color = Color(0xFFB45345))
+                                    }
                                 }
 
                                 if (!lugar.descripcion.isNullOrBlank()) {
@@ -469,6 +483,44 @@ fun DetalleViajeScreen(
 
                 mostrarDialogoLugar = false
                 lugarEnEdicion = null
+            }
+        )
+    }
+
+    lugarPendienteEliminar?.let { lugar ->
+        AlertDialog(
+            onDismissRequest = {
+                lugarPendienteEliminar = null
+            },
+            title = {
+                Text("Eliminar lugar")
+            },
+            text = {
+                Text("¿Seguro que quieres eliminar \"${lugar.nombre}\"?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val lugarId = lugar.id
+
+                        if (!lugarId.isNullOrBlank()) {
+                            onEliminarLugarClick(lugarId)
+                        }
+
+                        lugarPendienteEliminar = null
+                    }
+                ) {
+                    Text("Eliminar", color = Color(0xFFB45345))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        lugarPendienteEliminar = null
+                    }
+                ) {
+                    Text("Cancelar")
+                }
             }
         )
     }
