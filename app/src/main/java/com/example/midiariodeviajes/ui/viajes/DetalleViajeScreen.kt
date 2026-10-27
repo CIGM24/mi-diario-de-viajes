@@ -53,7 +53,6 @@ fun DetalleViajeScreen(
     viaje: ViajeDto,
     onVolverClick: () -> Unit,
     onEditarClick: () -> Unit = {},
-    onEliminarClick: () -> Unit = {},
     onSubirFotoClick: (android.net.Uri) -> Unit = {},
     onAñadirLugarClick: (LugarDto) -> Unit = {},
     onEditarLugarClick: (LugarDto) -> Unit = {},
@@ -459,19 +458,6 @@ fun DetalleViajeScreen(
                 )
             ) {
                 Text("✏️ Editar viaje")
-            }
-
-            OutlinedButton(
-                onClick = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Color(0xFFB45345)
-                )
-            ) {
-                Text("🗑️ Eliminar viaje")
             }
 
             Spacer(modifier = Modifier.height(4.dp))
