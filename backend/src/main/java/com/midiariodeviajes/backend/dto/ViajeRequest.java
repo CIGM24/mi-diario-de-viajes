@@ -5,6 +5,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.AssertTrue;
 
 import java.time.LocalDate;
 
@@ -90,5 +91,14 @@ public class ViajeRequest {
 
     public void setEstado(EstadoViaje estado) {
         this.estado = estado;
+    }
+
+    @AssertTrue(message = "La fecha de fin no puede ser anterior a la fecha de inicio")
+    public boolean isRangoFechasValido() {
+        if (fechaInicio == null || fechaFin == null) {
+            return true;
+        }
+
+        return !fechaFin.isBefore(fechaInicio);
     }
 }
