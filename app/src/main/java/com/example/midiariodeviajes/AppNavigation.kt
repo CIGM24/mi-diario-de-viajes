@@ -42,6 +42,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.midiariodeviajes.ui.login.LoginViewModel
 import com.example.midiariodeviajes.ui.login.LoginViewModelFactory
+import com.example.midiariodeviajes.ui.register.RegisterViewModel
+import com.example.midiariodeviajes.ui.register.RegisterViewModelFactory
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -123,6 +125,28 @@ fun AppNavigation() {
         }
 
         composable(Rutas.REGISTRO) {
+            val registerViewModel: RegisterViewModel = viewModel(
+                factory = RegisterViewModelFactory(registroRepository)
+            )
+            val registerUiState by registerViewModel.uiState.collectAsState()
+
+            RegisterScreen(
+                onRegistrarseClick = { nombre, correo, contrasena ->
+                    registerViewModel.registrar(
+                        nombre = nombre,
+                        email = correo,
+                        password = contrasena
+                    )
+                },
+                onIniciarSesionClick = {
+                    navController.popBackStack()
+                },
+                mensajeError = registerUiState.mensajeError,
+                mensajeExito = registerUiState.mensajeExito
+            )
+        }
+
+        /*composable(Rutas.REGISTRO) {
             var mensajeErrorRegistro by remember {
                 mutableStateOf<String?>(null)
             }
@@ -160,7 +184,7 @@ fun AppNavigation() {
                 mensajeExito = mensajeExitoRegistro
 
             )
-        }
+        }*/
 
 
         composable(Rutas.MIS_VIAJES) {
