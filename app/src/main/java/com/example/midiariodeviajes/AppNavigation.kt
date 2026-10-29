@@ -44,6 +44,11 @@ import com.example.midiariodeviajes.ui.login.LoginViewModel
 import com.example.midiariodeviajes.ui.login.LoginViewModelFactory
 import com.example.midiariodeviajes.ui.register.RegisterViewModel
 import com.example.midiariodeviajes.ui.register.RegisterViewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import com.example.midiariodeviajes.data.ViajesRepository
+import com.example.midiariodeviajes.ui.viajes.ViajesViewModel
+import com.example.midiariodeviajes.ui.viajes.ViajesViewModelFactory
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -64,6 +69,11 @@ fun AppNavigation() {
     var mensajeError by remember { mutableStateOf<String?>(null) }
     var tokenJwt by remember { mutableStateOf<String?>(null) }
     var viajes by remember { mutableStateOf<List<ViajeDto>>(emptyList()) }
+    val viajesRepository = remember { ViajesRepository() }
+    val viajesViewModel: ViajesViewModel = viewModel(
+        factory = ViajesViewModelFactory(viajesRepository)
+    )
+    val viajesUiState by viajesViewModel.uiState.collectAsState()
 
     NavHost(
         navController = navController,
@@ -83,6 +93,30 @@ fun AppNavigation() {
             val loginUiState by loginViewModel.uiState.collectAsState()
 
             LaunchedEffect(loginUiState.token) {
+                val token = loginUiState.token ?: return@LaunchedEffect
+
+                tokenJwt = token
+                SesionUsuario.tokenJwt = token
+                mensajeError = null
+
+                viajesViewModel.cargarViajes(token)
+            }
+
+            LaunchedEffect(loginUiState.token, viajesUiState.cargaCompletada) {
+                val token = loginUiState.token ?: return@LaunchedEffect
+                if (viajesUiState.cargaCompletada) {
+                    viajes = viajesUiState.viajes
+
+                    navController.navigate(Rutas.MIS_VIAJES) {
+                        popUpTo(Rutas.LOGIN) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            /*LaunchedEffect(loginUiState.token) {
                 val token = loginUiState.token ?: return@LaunchedEffect
 
                 tokenJwt = token
@@ -110,10 +144,13 @@ fun AppNavigation() {
                     mensajeError =
                         "No se pudieron cargar los viajes. Comprueba la conexión."
                 }
-            }
+            }*/
 
             LoginScreen(
-                mensajeError = loginUiState.mensajeError ?: mensajeError,
+                mensajeError = loginUiState.mensajeError
+                    ?: viajesUiState.mensajeError
+                    ?: mensajeError,
+                /*mensajeError = loginUiState.mensajeError ?: mensajeError,*/
                 onIniciarSesionClick = { correo, contrasena ->
                     mensajeError = null
                     loginViewModel.iniciarSesion(correo, contrasena)
@@ -145,47 +182,6 @@ fun AppNavigation() {
                 mensajeExito = registerUiState.mensajeExito
             )
         }
-
-        /*composable(Rutas.REGISTRO) {
-            var mensajeErrorRegistro by remember {
-                mutableStateOf<String?>(null)
-            }
-            var mensajeExitoRegistro by remember {
-                mutableStateOf<String?>(null)
-            }
-
-            RegisterScreen(
-                onRegistrarseClick = { nombre, correo, contrasena ->
-                    mensajeErrorRegistro = null
-                    mensajeExitoRegistro = null
-
-                    coroutineScope.launch {
-                        val resultado = registroRepository.registrarUsuario(
-                            nombre = nombre,
-                            email = correo,
-                            password = contrasena
-                        )
-
-                        resultado
-                            .onSuccess {
-                                mensajeExitoRegistro =
-                                    "¡Cuenta creada! Ya puedes iniciar sesión."
-                            }
-                            .onFailure { error ->
-                                mensajeErrorRegistro =
-                                    error.message ?: "No se pudo crear la cuenta."
-                            }
-                    }
-                },
-                onIniciarSesionClick = {
-                    navController.popBackStack()
-                },
-                mensajeError = mensajeErrorRegistro,
-                mensajeExito = mensajeExitoRegistro
-
-            )
-        }*/
-
 
         composable(Rutas.MIS_VIAJES) {
             MisViajesScreen(
