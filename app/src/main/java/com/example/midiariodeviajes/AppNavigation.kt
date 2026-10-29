@@ -38,6 +38,10 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import androidx.compose.runtime.LaunchedEffect
 import com.example.midiariodeviajes.data.model.LugarDto
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.midiariodeviajes.ui.login.LoginViewModel
+import com.example.midiariodeviajes.ui.login.LoginViewModelFactory
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -70,51 +74,53 @@ fun AppNavigation() {
                 }
             )
         }
-
         composable(Rutas.LOGIN) {
+            val loginViewModel: LoginViewModel = viewModel(
+                factory = LoginViewModelFactory(authRepository)
+            )
+            val loginUiState by loginViewModel.uiState.collectAsState()
+
+            LaunchedEffect(loginUiState.token) {
+                val token = loginUiState.token ?: return@LaunchedEffect
+
+                tokenJwt = token
+                SesionUsuario.tokenJwt = token
+                mensajeError = null
+
+                try {
+                    val respuestaViajes = RetrofitClient.viajesApi
+                        .obtenerViajes("Bearer $token")
+
+                    if (respuestaViajes.isSuccessful) {
+                        viajes = respuestaViajes.body() ?: emptyList()
+
+                        navController.navigate(Rutas.MIS_VIAJES) {
+                            popUpTo(Rutas.LOGIN) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        mensajeError =
+                            "No se pudieron cargar los viajes (${respuestaViajes.code()})."
+                    }
+                } catch (e: Exception) {
+                    mensajeError =
+                        "No se pudieron cargar los viajes. Comprueba la conexión."
+                }
+            }
+
             LoginScreen(
-                mensajeError = mensajeError,
+                mensajeError = loginUiState.mensajeError ?: mensajeError,
                 onIniciarSesionClick = { correo, contrasena ->
                     mensajeError = null
-
-                    coroutineScope.launch {
-                        val resultado = authRepository.iniciarSesion(
-                            correo,
-                            contrasena
-                        )
-
-                        resultado
-                            .onSuccess { token ->
-                                tokenJwt = token
-                                SesionUsuario.tokenJwt = token
-
-                                val respuestaViajes = RetrofitClient.viajesApi
-                                    .obtenerViajes("Bearer $token")
-
-                                if (respuestaViajes.isSuccessful) {
-                                    viajes = respuestaViajes.body() ?: emptyList()
-                                    navController.navigate(Rutas.MIS_VIAJES) {
-                                        popUpTo(Rutas.LOGIN) {
-                                            inclusive = true
-                                        }
-                                        launchSingleTop = true
-                                    }
-                                } else {
-                                    mensajeError = "No se pudieron cargar los viajes (${respuestaViajes.code()})."
-                                }
-                            }
-                            .onFailure { error ->
-                                mensajeError = error.message
-                                    ?: "No se pudo iniciar sesión."
-                            }
-                    }
+                    loginViewModel.iniciarSesion(correo, contrasena)
                 },
                 onCrearCuentaClick = {
                     navController.navigate(Rutas.REGISTRO)
                 }
             )
         }
-
 
         composable(Rutas.REGISTRO) {
             var mensajeErrorRegistro by remember {
