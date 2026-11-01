@@ -75,6 +75,12 @@ fun AppNavigation() {
     )
     val viajesUiState by viajesViewModel.uiState.collectAsState()
 
+    LaunchedEffect(viajesUiState.viajes) {
+        if (viajesUiState.cargaCompletada) {
+            viajes = viajesUiState.viajes
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Rutas.BIENVENIDA
@@ -115,37 +121,6 @@ fun AppNavigation() {
                     }
                 }
             }
-
-            /*LaunchedEffect(loginUiState.token) {
-                val token = loginUiState.token ?: return@LaunchedEffect
-
-                tokenJwt = token
-                SesionUsuario.tokenJwt = token
-                mensajeError = null
-
-                try {
-                    val respuestaViajes = RetrofitClient.viajesApi
-                        .obtenerViajes("Bearer $token")
-
-                    if (respuestaViajes.isSuccessful) {
-                        viajes = respuestaViajes.body() ?: emptyList()
-
-                        navController.navigate(Rutas.MIS_VIAJES) {
-                            popUpTo(Rutas.LOGIN) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    } else {
-                        mensajeError =
-                            "No se pudieron cargar los viajes (${respuestaViajes.code()})."
-                    }
-                } catch (e: Exception) {
-                    mensajeError =
-                        "No se pudieron cargar los viajes. Comprueba la conexión."
-                }
-            }*/
-
             LoginScreen(
                 mensajeError = loginUiState.mensajeError
                     ?: viajesUiState.mensajeError
@@ -209,55 +184,19 @@ fun AppNavigation() {
                     navController.navigate("${Rutas.DETALLE_VIAJE}/$idViaje")
                 },
                 onEliminarViajeClick = { idViaje ->
-                    coroutineScope.launch {
-                        val token = tokenJwt ?: SesionUsuario.tokenJwt
+                    val token = tokenJwt ?: SesionUsuario.tokenJwt
 
-                        if (token.isNullOrBlank()) {
-                            Toast.makeText(
-                                contexto,
-                                "La sesión ha caducado. Inicia sesión de nuevo.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                            return@launch
-                        }
-
-                        try {
-                            val respuesta = RetrofitClient.viajesApi.eliminarViaje(
-                                token = "Bearer $token",
-                                id = idViaje
-                            )
-
-                            if (respuesta.isSuccessful) {
-                                // Actualizamos la lista en memoria inmediatamente.
-                                viajes = viajes.filterNot { it.id == idViaje }
-
-                                // Intentamos sincronizarla con el servidor.
-                                val respuestaViajes =
-                                    RetrofitClient.viajesApi.obtenerViajes("Bearer $token")
-
-                                if (respuestaViajes.isSuccessful) {
-                                    viajes = respuestaViajes.body() ?: emptyList()
-                                }
-
-                                Toast.makeText(
-                                    contexto,
-                                    "Viaje eliminado",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                Toast.makeText(
-                                    contexto,
-                                    "No se pudo eliminar el viaje (${respuesta.code()})",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                contexto,
-                                "Error de conexión al eliminar el viaje",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
+                    if (token.isNullOrBlank()) {
+                        Toast.makeText(
+                            contexto,
+                            "La sesión ha caducado. Inicia sesión de nuevo.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        viajesViewModel.eliminarViaje(
+                            token = token,
+                            viajeId = idViaje
+                        )
                     }
                 }
             )

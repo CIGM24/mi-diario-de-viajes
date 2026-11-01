@@ -45,4 +45,39 @@ class ViajesViewModel(
             )
         }
     }
+    fun eliminarViaje(token: String, viajeId: String) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    cargando = true,
+                    mensajeError = null
+                )
+            }
+
+            val resultado = viajesRepository.eliminarViaje(token, viajeId)
+
+            resultado.fold(
+                onSuccess = {
+                    _uiState.update { estado ->
+                        estado.copy(
+                            viajes = estado.viajes.filterNot { viaje ->
+                                viaje.id == viajeId
+                            },
+                            cargando = false,
+                            mensajeError = null
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            cargando = false,
+                            mensajeError = error.message
+                                ?: "No se pudo eliminar el viaje."
+                        )
+                    }
+                }
+            )
+        }
+    }
 }
