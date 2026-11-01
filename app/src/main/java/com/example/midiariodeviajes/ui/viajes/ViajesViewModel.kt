@@ -13,7 +13,8 @@ data class ViajesUiState(
     val viajes: List<ViajeDto> = emptyList(),
     val cargando: Boolean = false,
     val mensajeError: String? = null,
-    val cargaCompletada: Boolean = false
+    val cargaCompletada: Boolean = false,
+    val creacionCompletada: Boolean = false
 )
 
 class ViajesViewModel(
@@ -45,6 +46,50 @@ class ViajesViewModel(
             )
         }
     }
+
+    fun crearViaje(token: String, viaje: ViajeDto) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    cargando = true,
+                    mensajeError = null,
+                    creacionCompletada = false
+                )
+            }
+
+            val resultado = viajesRepository.crearViaje(token, viaje)
+
+            resultado.fold(
+                onSuccess = { viajeCreado ->
+                    _uiState.update { estado ->
+                        estado.copy(
+                            viajes = estado.viajes + viajeCreado,
+                            cargando = false,
+                            mensajeError = null,
+                            creacionCompletada = true
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            cargando = false,
+                            mensajeError = error.message
+                                ?: "No se pudo guardar el viaje.",
+                            creacionCompletada = false
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun limpiarCreacionCompletada() {
+        _uiState.update {
+            it.copy(creacionCompletada = false)
+        }
+    }
+
     fun eliminarViaje(token: String, viajeId: String) {
         viewModelScope.launch {
             _uiState.update {

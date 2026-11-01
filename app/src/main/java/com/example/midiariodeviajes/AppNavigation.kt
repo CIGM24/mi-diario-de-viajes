@@ -547,15 +547,21 @@ fun AppNavigation() {
                 }
             }
         }
-
-
         composable("anadir_viaje") {
             var mensajeErrorGuardar by remember {
                 mutableStateOf<String?>(null)
             }
 
+            LaunchedEffect(viajesUiState.creacionCompletada) {
+                if (viajesUiState.creacionCompletada) {
+                    viajesViewModel.limpiarCreacionCompletada()
+                    navController.popBackStack()
+                }
+            }
+
             AnadirViajeScreen(
-                mensajeErrorGuardar = mensajeErrorGuardar,
+                mensajeErrorGuardar =
+                mensajeErrorGuardar ?: viajesUiState.mensajeError,
                 onVolverClick = {
                     navController.popBackStack()
                 },
@@ -570,57 +576,30 @@ fun AppNavigation() {
 
                     mensajeErrorGuardar = null
 
-                    coroutineScope.launch {
-                        val token = tokenJwt
+                    val token = tokenJwt ?: SesionUsuario.tokenJwt
 
-                        if (token.isNullOrBlank()) {
-                            mensajeErrorGuardar =
-                                "Tu sesión ha caducado. Inicia sesión de nuevo."
-                            return@launch
-                        }
+                    if (token.isNullOrBlank()) {
+                        mensajeErrorGuardar =
+                            "Tu sesión ha caducado. Inicia sesión de nuevo."
+                    } else {
+                        val nuevoViaje = ViajeDto(
+                            nombre = nombre,
+                            destino = destino,
+                            fechaInicio = fechaInicio,
+                            fechaFin = fechaFin,
+                            presupuesto = presupuesto,
+                            descripcion = descripcion,
+                            estado = estado
+                        )
 
-                        try {
-                            val nuevoViaje = ViajeDto(
-                                nombre = nombre,
-                                destino = destino,
-                                fechaInicio = fechaInicio,
-                                fechaFin = fechaFin,
-                                presupuesto = presupuesto,
-                                descripcion = descripcion,
-                                estado = estado
-                            )
-
-                            val respuesta = RetrofitClient.viajesApi.crearViaje(
-                                token = "Bearer $token",
-                                viaje = nuevoViaje
-                            )
-
-                            if (respuesta.isSuccessful) {
-                                val respuestaViajes =
-                                    RetrofitClient.viajesApi.obtenerViajes(
-                                        "Bearer $token"
-                                    )
-
-                                if (respuestaViajes.isSuccessful) {
-                                    viajes = respuestaViajes.body() ?: emptyList()
-                                    navController.popBackStack()
-                                } else {
-                                    mensajeErrorGuardar =
-                                        "El viaje se guardó, pero no se pudo actualizar la lista."
-                                }
-                            } else {
-                                mensajeErrorGuardar =
-                                    "No se pudo guardar el viaje (${respuesta.code()})."
-                            }
-                        } catch (e: Exception) {
-                            mensajeErrorGuardar =
-                                "No se pudo conectar con el servidor. Comprueba la conexión."
-                        }
+                        viajesViewModel.crearViaje(
+                            token = token,
+                            viaje = nuevoViaje
+                        )
                     }
                 }
             )
         }
-
         composable("editar_viaje/{idViaje}") { backStackEntry ->
             val idViaje = backStackEntry.arguments?.getString("idViaje")
             val viajeEditar = viajes.find { it.id == idViaje }

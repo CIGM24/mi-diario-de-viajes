@@ -25,6 +25,38 @@ class ViajesRepository {
         }
     }
 
+    suspend fun crearViaje(
+        token: String,
+        viaje: ViajeDto
+    ): Result<ViajeDto> {
+        return try {
+            val respuesta = RetrofitClient.viajesApi.crearViaje(
+                token = "Bearer $token",
+                viaje = viaje
+            )
+
+            if (respuesta.isSuccessful) {
+                val viajeCreado = respuesta.body()
+
+                if (viajeCreado != null) {
+                    Result.success(viajeCreado)
+                } else {
+                    Result.failure(
+                        Exception("El servidor no devolvió los datos del viaje creado.")
+                    )
+                }
+            } else {
+                Result.failure(
+                    Exception("No se pudo guardar el viaje (${respuesta.code()}).")
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(
+                Exception("No se pudo guardar el viaje. Comprueba la conexión.")
+            )
+        }
+    }
+
     suspend fun eliminarViaje(token: String, viajeId: String): Result<Unit> {
         return try {
             val respuesta = RetrofitClient.viajesApi.eliminarViaje(
