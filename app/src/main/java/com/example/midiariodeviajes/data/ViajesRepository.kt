@@ -57,6 +57,40 @@ class ViajesRepository {
         }
     }
 
+    suspend fun actualizarViaje(
+        token: String,
+        viajeId: String,
+        viaje: ViajeDto
+    ): Result<ViajeDto> {
+        return try {
+            val respuesta = RetrofitClient.viajesApi.actualizarViaje(
+                token = "Bearer $token",
+                id = viajeId,
+                viaje = viaje
+            )
+
+            if (respuesta.isSuccessful) {
+                val viajeActualizado = respuesta.body()
+
+                if (viajeActualizado != null) {
+                    Result.success(viajeActualizado)
+                } else {
+                    Result.failure(
+                        Exception("El servidor no devolvió los datos del viaje actualizado.")
+                    )
+                }
+            } else {
+                Result.failure(
+                    Exception("No se pudo actualizar el viaje (${respuesta.code()}).")
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(
+                Exception("No se pudo actualizar el viaje. Comprueba la conexión.")
+            )
+        }
+    }
+
     suspend fun eliminarViaje(token: String, viajeId: String): Result<Unit> {
         return try {
             val respuesta = RetrofitClient.viajesApi.eliminarViaje(

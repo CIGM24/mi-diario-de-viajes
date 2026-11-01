@@ -609,9 +609,17 @@ fun AppNavigation() {
                     mutableStateOf<String?>(null)
                 }
 
+                LaunchedEffect(viajesUiState.actualizacionCompletada) {
+                    if (viajesUiState.actualizacionCompletada) {
+                        viajesViewModel.limpiarActualizacionCompletada()
+                        navController.popBackStack()
+                    }
+                }
+
                 AnadirViajeScreen(
                     viajeEditar = viajeEditar,
-                    mensajeErrorGuardar = mensajeErrorEditar,
+                    mensajeErrorGuardar =
+                    mensajeErrorEditar ?: viajesUiState.mensajeError,
                     onVolverClick = {
                         navController.popBackStack()
                     },
@@ -626,54 +634,29 @@ fun AppNavigation() {
 
                         mensajeErrorEditar = null
 
-                        coroutineScope.launch {
-                            val token = tokenJwt
+                        val token = tokenJwt ?: SesionUsuario.tokenJwt
 
-                            if (token.isNullOrBlank()) {
-                                mensajeErrorEditar =
-                                    "Tu sesión ha caducado. Inicia sesión de nuevo."
-                                return@launch
-                            }
+                        if (token.isNullOrBlank()) {
+                            mensajeErrorEditar =
+                                "Tu sesión ha caducado. Inicia sesión de nuevo."
+                        } else if (idViaje.isNullOrBlank()) {
+                            mensajeErrorEditar = "No se ha encontrado el viaje."
+                        } else {
+                            val viajeActualizado = viajeEditar.copy(
+                                nombre = nombre,
+                                destino = destino,
+                                fechaInicio = fechaInicio,
+                                fechaFin = fechaFin,
+                                presupuesto = presupuesto,
+                                descripcion = descripcion,
+                                estado = estado
+                            )
 
-                            try {
-                                val viajeActualizado = viajeEditar.copy(
-                                    nombre = nombre,
-                                    destino = destino,
-                                    fechaInicio = fechaInicio,
-                                    fechaFin = fechaFin,
-                                    presupuesto = presupuesto,
-                                    descripcion = descripcion,
-                                    estado = estado
-                                )
-
-                                val respuesta =
-                                    RetrofitClient.viajesApi.actualizarViaje(
-                                        token = "Bearer $token",
-                                        id = idViaje!!,
-                                        viaje = viajeActualizado
-                                    )
-
-                                if (respuesta.isSuccessful) {
-                                    val respuestaViajes =
-                                        RetrofitClient.viajesApi.obtenerViajes(
-                                            "Bearer $token"
-                                        )
-
-                                    if (respuestaViajes.isSuccessful) {
-                                        viajes = respuestaViajes.body() ?: emptyList()
-                                        navController.popBackStack()
-                                    } else {
-                                        mensajeErrorEditar =
-                                            "El viaje se actualizó, pero no se pudo refrescar la lista."
-                                    }
-                                } else {
-                                    mensajeErrorEditar =
-                                        "No se pudo actualizar el viaje (${respuesta.code()})."
-                                }
-                            } catch (e: Exception) {
-                                mensajeErrorEditar =
-                                    "No se pudo conectar con el servidor. Comprueba la conexión."
-                            }
+                            viajesViewModel.actualizarViaje(
+                                token = token,
+                                viajeId = idViaje,
+                                viaje = viajeActualizado
+                            )
                         }
                     }
                 )
@@ -681,7 +664,6 @@ fun AppNavigation() {
                 Text("No se ha encontrado el viaje que quieres editar.")
             }
         }
-
 
     }
 }

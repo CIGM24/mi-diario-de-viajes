@@ -14,7 +14,8 @@ data class ViajesUiState(
     val cargando: Boolean = false,
     val mensajeError: String? = null,
     val cargaCompletada: Boolean = false,
-    val creacionCompletada: Boolean = false
+    val creacionCompletada: Boolean = false,
+    val actualizacionCompletada: Boolean = false
 )
 
 class ViajesViewModel(
@@ -87,6 +88,63 @@ class ViajesViewModel(
     fun limpiarCreacionCompletada() {
         _uiState.update {
             it.copy(creacionCompletada = false)
+        }
+    }
+
+    fun actualizarViaje(
+        token: String,
+        viajeId: String,
+        viaje: ViajeDto
+    ) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    cargando = true,
+                    mensajeError = null,
+                    actualizacionCompletada = false
+                )
+            }
+
+            val resultado = viajesRepository.actualizarViaje(
+                token = token,
+                viajeId = viajeId,
+                viaje = viaje
+            )
+
+            resultado.fold(
+                onSuccess = { viajeActualizado ->
+                    _uiState.update { estado ->
+                        estado.copy(
+                            viajes = estado.viajes.map { viajeEnLista ->
+                                if (viajeEnLista.id == viajeId) {
+                                    viajeActualizado
+                                } else {
+                                    viajeEnLista
+                                }
+                            },
+                            cargando = false,
+                            mensajeError = null,
+                            actualizacionCompletada = true
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            cargando = false,
+                            mensajeError = error.message
+                                ?: "No se pudo actualizar el viaje.",
+                            actualizacionCompletada = false
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun limpiarActualizacionCompletada() {
+        _uiState.update {
+            it.copy(actualizacionCompletada = false)
         }
     }
 
