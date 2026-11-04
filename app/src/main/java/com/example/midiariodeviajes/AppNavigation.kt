@@ -49,6 +49,10 @@ import androidx.compose.runtime.collectAsState
 import com.example.midiariodeviajes.data.ViajesRepository
 import com.example.midiariodeviajes.ui.viajes.ViajesViewModel
 import com.example.midiariodeviajes.ui.viajes.ViajesViewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.midiariodeviajes.data.LugaresRepository
+import com.example.midiariodeviajes.ui.viajes.LugaresViewModel
+import com.example.midiariodeviajes.ui.viajes.LugaresViewModelFactory
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -203,8 +207,15 @@ fun AppNavigation() {
         }
 
         composable("${Rutas.DETALLE_VIAJE}/{idViaje}") { backStackEntry ->
-
             val idViaje = backStackEntry.arguments?.getString("idViaje")
+
+            val lugaresRepository = remember(idViaje) {
+                LugaresRepository()
+            }
+            val lugaresViewModel: LugaresViewModel = viewModel(
+                factory = LugaresViewModelFactory(lugaresRepository)
+            )
+            val lugaresUiState by lugaresViewModel.uiState.collectAsState()
 
             var lugares by remember(idViaje) {
                 mutableStateOf<List<LugarDto>>(emptyList())
@@ -215,15 +226,18 @@ fun AppNavigation() {
             var errorLugares by remember(idViaje) {
                 mutableStateOf<String?>(null)
             }
+            var cargaLugaresIniciada by remember(idViaje) {
+                mutableStateOf(false)
+            }
 
             LaunchedEffect(idViaje, tokenJwt) {
-                val token = tokenJwt ?: SesionUsuario.tokenJwt
-
                 if (idViaje.isNullOrBlank()) {
                     errorLugares = "No se ha encontrado el viaje."
                     cargandoLugares = false
                     return@LaunchedEffect
                 }
+
+                val token = tokenJwt ?: SesionUsuario.tokenJwt
 
                 if (token.isNullOrBlank()) {
                     errorLugares = "Tu sesión ha caducado. Inicia sesión de nuevo."
@@ -231,28 +245,25 @@ fun AppNavigation() {
                     return@LaunchedEffect
                 }
 
-                try {
-                    val respuesta = RetrofitClient.viajesApi.obtenerLugares(
-                        token = "Bearer $token",
-                        viajeId = idViaje
-                    )
+                cargaLugaresIniciada = true
+                cargandoLugares = true
+                errorLugares = null
 
-                    if (respuesta.isSuccessful) {
-                        lugares = respuesta.body() ?: emptyList()
-                    } else {
-                        errorLugares =
-                            "No se pudieron cargar los lugares (${respuesta.code()})."
-                    }
-                } catch (e: Exception) {
-                    errorLugares = "Error de conexión al cargar los lugares."
-                } finally {
-                    cargandoLugares = false
+                lugaresViewModel.cargarLugares(
+                    token = token,
+                    viajeId = idViaje
+                )
+            }
+
+            LaunchedEffect(lugaresUiState) {
+                if (cargaLugaresIniciada) {
+                    lugares = lugaresUiState.lugares
+                    cargandoLugares = lugaresUiState.cargando
+                    errorLugares = lugaresUiState.mensajeError
                 }
             }
 
-            val viajeSeleccionado = viajes.find {
-                it.id == idViaje
-            }
+            val viajeSeleccionado = viajes.find { it.id == idViaje }
 
             if (viajeSeleccionado != null) {
                 DetalleViajeScreen(
