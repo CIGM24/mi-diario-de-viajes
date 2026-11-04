@@ -130,6 +130,42 @@ class LugaresViewModel(
         }
     }
 
+    fun eliminarLugar(token: String, lugarId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                guardando = true,
+                mensajeError = null,
+                mensajeExito = null
+            )
+
+            val resultado = lugaresRepository.eliminarLugar(
+                token = token,
+                lugarId = lugarId
+            )
+
+            resultado.fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        lugares = _uiState.value.lugares.filterNot { lugar ->
+                            lugar.id == lugarId
+                        },
+                        guardando = false,
+                        mensajeError = null,
+                        mensajeExito = "Lugar eliminado correctamente."
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value = _uiState.value.copy(
+                        guardando = false,
+                        mensajeError = error.message
+                            ?: "No se pudo eliminar el lugar.",
+                        mensajeExito = null
+                    )
+                }
+            )
+        }
+    }
+
     fun limpiarMensajeExito() {
         _uiState.value = _uiState.value.copy(mensajeExito = null)
     }

@@ -98,4 +98,28 @@ class LugaresRepository {
             )
         }
     }
+
+    suspend fun eliminarLugar(
+        token: String,
+        lugarId: String
+    ): Result<Unit> {
+        return try {
+            val respuesta = RetrofitClient.viajesApi.eliminarLugar(
+                token = "Bearer $token",
+                id = lugarId
+            )
+
+            if (respuesta.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(
+                    Exception("No se pudo eliminar el lugar (${respuesta.code()}).")
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(
+                Exception("No se pudo eliminar el lugar. Comprueba la conexión.")
+            )
+        }
+    }
 }

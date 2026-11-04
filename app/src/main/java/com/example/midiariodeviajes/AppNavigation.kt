@@ -437,46 +437,25 @@ fun AppNavigation() {
                         }
                     },
                     onEliminarLugarClick = { lugarId ->
-                        coroutineScope.launch {
-                            val token = tokenJwt ?: SesionUsuario.tokenJwt
+                        val token = tokenJwt ?: SesionUsuario.tokenJwt
 
-                            if (token.isNullOrBlank()) {
-                                Toast.makeText(
-                                    contexto,
-                                    "Tu sesión ha caducado. Inicia sesión de nuevo.",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                return@launch
-                            }
-
-                            try {
-                                val respuesta = RetrofitClient.viajesApi.eliminarLugar(
-                                    token = "Bearer $token",
-                                    id = lugarId
-                                )
-
-                                if (respuesta.isSuccessful) {
-                                    lugares = lugares.filterNot { it.id == lugarId }
-
-                                    Toast.makeText(
-                                        contexto,
-                                        "Lugar eliminado correctamente.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    Toast.makeText(
-                                        contexto,
-                                        "No se pudo eliminar el lugar (${respuesta.code()}).",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            } catch (e: Exception) {
-                                Toast.makeText(
-                                    contexto,
-                                    "Error de conexión al eliminar el lugar.",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
+                        if (token.isNullOrBlank()) {
+                            Toast.makeText(
+                                contexto,
+                                "Tu sesión ha caducado. Inicia sesión de nuevo.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else if (lugarId.isBlank()) {
+                            Toast.makeText(
+                                contexto,
+                                "No se ha encontrado el lugar.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            lugaresViewModel.eliminarLugar(
+                                token = token,
+                                lugarId = lugarId
+                            )
                         }
                     }
                 )
