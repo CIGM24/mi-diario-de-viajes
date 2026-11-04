@@ -11,7 +11,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.midiariodeviajes.data.AuthRepository
 import com.example.midiariodeviajes.data.RegistroRepository
-import com.example.midiariodeviajes.data.api.RetrofitClient
 import com.example.midiariodeviajes.data.model.ViajeDto
 import com.example.midiariodeviajes.ui.login.LoginScreen
 import com.example.midiariodeviajes.ui.register.RegisterScreen
@@ -35,7 +34,6 @@ import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import okhttp3.MultipartBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 import androidx.compose.runtime.LaunchedEffect
 import com.example.midiariodeviajes.data.model.LugarDto
 import androidx.compose.runtime.collectAsState
@@ -53,6 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.midiariodeviajes.data.LugaresRepository
 import com.example.midiariodeviajes.ui.viajes.LugaresViewModel
 import com.example.midiariodeviajes.ui.viajes.LugaresViewModelFactory
+import okhttp3.RequestBody.Companion.toRequestBody
 
 private object Rutas {
     const val BIENVENIDA = "bienvenida"
@@ -78,6 +77,12 @@ fun AppNavigation() {
         factory = ViajesViewModelFactory(viajesRepository)
     )
     val viajesUiState by viajesViewModel.uiState.collectAsState()
+
+    LaunchedEffect(viajesUiState.mensajeFoto) {
+        val mensaje = viajesUiState.mensajeFoto ?: return@LaunchedEffect
+        Toast.makeText(contexto, mensaje, Toast.LENGTH_LONG).show()
+        viajesViewModel.limpiarMensajeFoto()
+    }
 
     LaunchedEffect(viajesUiState.viajes) {
         if (viajesUiState.cargaCompletada) {
@@ -302,6 +307,8 @@ fun AppNavigation() {
                                 return@launch
                             }
 
+                            val viajeId = viajeSeleccionado.id ?: return@launch
+
                             try {
                                 val tipoMime = contexto.contentResolver.getType(uri)
                                     ?: "image/jpeg"
@@ -336,40 +343,11 @@ fun AppNavigation() {
                                     cuerpo
                                 )
 
-                                val respuesta = RetrofitClient.viajesApi.subirFoto(
-                                    token = "Bearer $token",
-                                    id = viajeSeleccionado.id ?: return@launch,
+                                viajesViewModel.subirFoto(
+                                    token = token,
+                                    viajeId = viajeId,
                                     archivo = archivo
                                 )
-
-                                if (respuesta.isSuccessful) {
-                                    val respuestaViajes =
-                                        RetrofitClient.viajesApi.obtenerViajes(
-                                            "Bearer $token"
-                                        )
-
-                                    if (respuestaViajes.isSuccessful) {
-                                        viajes = respuestaViajes.body() ?: emptyList()
-
-                                        Toast.makeText(
-                                            contexto,
-                                            "Fotografía guardada correctamente.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } else {
-                                        Toast.makeText(
-                                            contexto,
-                                            "La foto se guardó, pero no se pudo actualizar el viaje.",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        contexto,
-                                        "No se pudo subir la foto (${respuesta.code()}).",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
                             } catch (e: Exception) {
                                 Toast.makeText(
                                     contexto,

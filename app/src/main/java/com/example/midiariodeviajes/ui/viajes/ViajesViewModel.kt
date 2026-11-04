@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.midiariodeviajes.data.ViajesRepository
 import com.example.midiariodeviajes.data.model.ViajeDto
+import okhttp3.MultipartBody
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -15,7 +16,9 @@ data class ViajesUiState(
     val mensajeError: String? = null,
     val cargaCompletada: Boolean = false,
     val creacionCompletada: Boolean = false,
-    val actualizacionCompletada: Boolean = false
+    val actualizacionCompletada: Boolean = false,
+    val subiendoFoto: Boolean = false,
+    val mensajeFoto: String? = null
 )
 
 class ViajesViewModel(
@@ -24,6 +27,54 @@ class ViajesViewModel(
 
     private val _uiState = MutableStateFlow(ViajesUiState())
     val uiState = _uiState.asStateFlow()
+
+    fun subirFoto(token: String, viajeId: String, archivo: MultipartBody.Part) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(subiendoFoto = true, mensajeFoto = null)
+            }
+
+            val resultadoSubida = viajesRepository.subirFoto(token, viajeId, archivo)
+
+            resultadoSubida.fold(
+                onSuccess = {
+                    val resultadoViajes = viajesRepository.obtenerViajes(token)
+                    resultadoViajes.fold(
+                        onSuccess = { viajes ->
+                            _uiState.update {
+                                it.copy(
+                                    viajes = viajes,
+                                    cargaCompletada = true,
+                                    subiendoFoto = false,
+                                    mensajeFoto = "Fotografía guardada correctamente."
+                                )
+                            }
+                        },
+                        onFailure = {
+                            _uiState.update {
+                                it.copy(
+                                    subiendoFoto = false,
+                                    mensajeFoto = "La foto se guardó, pero no se pudo actualizar el viaje."
+                                )
+                            }
+                        }
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            subiendoFoto = false,
+                            mensajeFoto = error.message ?: "No se pudo subir la fotografía."
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun limpiarMensajeFoto() {
+        _uiState.update { it.copy(mensajeFoto = null) }
+    }
 
     fun cargarViajes(token: String) {
         viewModelScope.launch {

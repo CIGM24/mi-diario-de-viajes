@@ -2,8 +2,35 @@ package com.example.midiariodeviajes.data
 
 import com.example.midiariodeviajes.data.api.RetrofitClient
 import com.example.midiariodeviajes.data.model.ViajeDto
+import okhttp3.MultipartBody
 
 class ViajesRepository {
+
+    suspend fun subirFoto(
+        token: String,
+        viajeId: String,
+        archivo: MultipartBody.Part
+    ): Result<Unit> {
+        return try {
+            val respuesta = RetrofitClient.viajesApi.subirFoto(
+                token = "Bearer $token",
+                id = viajeId,
+                archivo = archivo
+            )
+
+            if (respuesta.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(
+                    Exception("No se pudo subir la foto (${respuesta.code()}).")
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(
+                Exception("Error al subir la fotografía: ${e.message}")
+            )
+        }
+    }
 
     suspend fun obtenerViajes(token: String): Result<List<ViajeDto>> {
         return try {
