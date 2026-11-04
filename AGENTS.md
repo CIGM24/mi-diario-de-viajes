@@ -59,10 +59,20 @@ Las decisiones arquitectónicas podrán ajustarse durante el desarrollo si exist
 El repositorio utiliza un único repositorio Git para todo el proyecto:
 
 mi-diario-de-viajes/
-├── android/
+├── app/                    # Módulo Android
+├── build.gradle.kts        # Configuración Gradle Android en la raíz
+├── settings.gradle.kts
 ├── backend/
 ├── README.md
 └── AGENTS.md
+
+El proyecto Android se configura desde la raíz del repositorio; no existe una
+carpeta `android/` independiente.
+
+El código Android está en `app/src/main/java/com/example/midiariodeviajes/`,
+separado principalmente en `data` y `ui`. El código Java está en
+`backend/src/main/java/com/midiariodeviajes/backend/`, con paquetes `controller`,
+`service`, `repository`, `model`, `dto`, `config` y `security`.
 
 El directorio `.git` se encuentra en la raíz del proyecto.
 
@@ -70,7 +80,8 @@ Android Studio e IntelliJ trabajan sobre el mismo repositorio Git.
 
 No crear un segundo repositorio Git para `backend`.
 
-La estructura interna de `android` y `backend` podrá evolucionar durante el desarrollo, siempre que se mantenga una organización clara y coherente.
+La estructura interna del módulo `app` y de `backend` podrá evolucionar durante
+el desarrollo, siempre que se mantenga una organización clara y coherente.
 
 ---
 
@@ -87,6 +98,11 @@ Debe encargarse de:
 * Retrofit.
 * Repositories.
 * Gestión de resultados y errores procedentes del backend.
+
+Las operaciones HTTP de la API deben pasar por Repository y ViewModel. La carga
+de fotografías remotas usa Coil desde `DetalleViajeScreen` con el JWT; es una
+excepción de presentación y no utiliza Retrofit ni el ViewModel para descargar
+los bytes de la imagen.
 
 ### Interfaz de usuario
 
@@ -190,7 +206,8 @@ Viaje
 ├── fechaFin
 ├── presupuesto
 ├── descripcion
-└── estado
+├── estado
+└── fotoUrl (opcional)
 
 El estado inicial utilizará:
 
@@ -213,6 +230,10 @@ Lugar
 Las coordenadas se incluyen para dejar preparado el modelo para una futura integración con Google Maps.
 
 No crear inicialmente una entidad independiente para fotografías.
+
+La foto de portada se guarda como archivo en el backend; `fotoUrl` contiene el
+nombre generado del archivo en el documento del viaje. No hay una colección
+MongoDB de fotografías.
 
 ---
 
@@ -289,6 +310,18 @@ Spring Boot → MongoDB
 
 Los datos deben mantenerse aunque la aplicación se cierre.
 
+### Fotografías de viajes (ampliación ya implementada)
+
+* Subir una fotografía con `POST /api/viajes/{id}/foto`, `multipart/form-data`
+  y el campo `archivo`.
+* Leerla con `GET /fotos/{nombreArchivo}`.
+* Ambos endpoints requieren JWT y el backend comprueba que la fotografía
+  corresponde a un viaje del usuario autenticado.
+* El backend guarda los archivos en el sistema de archivos y conserva el nombre
+  en `Viaje.fotoUrl`.
+* Android sube la foto mediante Repository y ViewModel. Coil la carga desde la
+  pantalla de detalle como excepción de presentación descrita en el apartado 4.
+
 ---
 
 ## 9. Seguridad y propiedad de los datos
@@ -358,6 +391,15 @@ GET    /api/viajes/{viajeId}/lugares
 POST   /api/viajes/{viajeId}/lugares
 PUT    /api/lugares/{id}
 DELETE /api/lugares/{id}
+
+### Fotografías de viajes (ampliación implementada)
+
+POST /api/viajes/{id}/foto (multipart/form-data, campo `archivo`)
+GET  /fotos/{nombreArchivo}
+
+Ambos endpoints requieren JWT. El backend limita la subida a imágenes JPG, PNG
+o WEBP de hasta 5 MB y verifica la propiedad del viaje antes de guardar o servir
+la foto.
 
 No crear endpoints adicionales hasta que exista una necesidad real.
 
@@ -461,7 +503,10 @@ El proyecto seguirá esta prioridad:
 6. Validaciones y gestión de errores
 7. Pulido visual
 8. Google Maps
-9. Fotografías
+9. Fotografías (ampliación ya implementada para la portada de viajes)
+
+La foto de portada ya se puede subir y mostrar. Esta ampliación no cambia los
+criterios necesarios para completar el MVP.
 
 No comenzar una prioridad inferior mientras una prioridad superior esté rota o incompleta de forma que impida continuar.
 
@@ -562,11 +607,14 @@ Google Maps no es necesario para que el MVP se considere terminado.
 
 ### Fotografías
 
-Se podrá estudiar posteriormente la posibilidad de:
+La ampliación de fotografías de viaje ya está implementada. Actualmente permite:
 
-* Seleccionar fotografías.
-* Asociarlas a lugares.
-* Gestionar archivos.
+* Seleccionar y asociar una fotografía de portada a un viaje.
+* Subir archivos JPG, PNG o WEBP de hasta 5 MB.
+* Mostrar la foto en el detalle del viaje mediante Coil.
+
+Las fotografías se asocian a viajes, no a lugares. No añadir una colección
+MongoDB ni ampliar la gestión de archivos sin una necesidad justificada.
 
 La gestión de fotografías es una ampliación avanzada y no debe poner en riesgo el MVP.
 
