@@ -64,4 +64,38 @@ class LugaresRepository {
             )
         }
     }
+
+    suspend fun actualizarLugar(
+        token: String,
+        lugarId: String,
+        lugar: LugarDto
+    ): Result<LugarDto> {
+        return try {
+            val respuesta = RetrofitClient.viajesApi.actualizarLugar(
+                token = "Bearer $token",
+                id = lugarId,
+                lugar = lugar
+            )
+
+            if (respuesta.isSuccessful) {
+                val lugarActualizado = respuesta.body()
+
+                if (lugarActualizado != null) {
+                    Result.success(lugarActualizado)
+                } else {
+                    Result.failure(
+                        Exception("El servidor no devolvió los datos del lugar actualizado.")
+                    )
+                }
+            } else {
+                Result.failure(
+                    Exception("No se pudo actualizar el lugar (${respuesta.code()}).")
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(
+                Exception("No se pudo actualizar el lugar. Comprueba la conexión.")
+            )
+        }
+    }
 }

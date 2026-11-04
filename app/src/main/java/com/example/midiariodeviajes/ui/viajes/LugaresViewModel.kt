@@ -85,6 +85,51 @@ class LugaresViewModel(
         }
     }
 
+    fun actualizarLugar(
+        token: String,
+        lugarId: String,
+        lugar: LugarDto
+    ) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                guardando = true,
+                mensajeError = null,
+                mensajeExito = null
+            )
+
+            val resultado = lugaresRepository.actualizarLugar(
+                token = token,
+                lugarId = lugarId,
+                lugar = lugar
+            )
+
+            resultado.fold(
+                onSuccess = { lugarActualizado ->
+                    _uiState.value = _uiState.value.copy(
+                        lugares = _uiState.value.lugares.map { lugarEnLista ->
+                            if (lugarEnLista.id == lugarId) {
+                                lugarActualizado
+                            } else {
+                                lugarEnLista
+                            }
+                        },
+                        guardando = false,
+                        mensajeError = null,
+                        mensajeExito = "Lugar actualizado correctamente."
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value = _uiState.value.copy(
+                        guardando = false,
+                        mensajeError = error.message
+                            ?: "No se pudo actualizar el lugar.",
+                        mensajeExito = null
+                    )
+                }
+            )
+        }
+    }
+
     fun limpiarMensajeExito() {
         _uiState.value = _uiState.value.copy(mensajeExito = null)
     }
