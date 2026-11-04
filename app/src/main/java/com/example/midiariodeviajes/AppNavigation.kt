@@ -263,6 +263,18 @@ fun AppNavigation() {
                 }
             }
 
+            LaunchedEffect(lugaresUiState.mensajeExito) {
+                val mensaje = lugaresUiState.mensajeExito ?: return@LaunchedEffect
+
+                Toast.makeText(
+                    contexto,
+                    mensaje,
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                lugaresViewModel.limpiarMensajeExito()
+            }
+
             val viajeSeleccionado = viajes.find { it.id == idViaje }
 
             if (viajeSeleccionado != null) {
@@ -368,18 +380,15 @@ fun AppNavigation() {
                         }
                     },
                     onAñadirLugarClick = { lugar ->
-                        coroutineScope.launch {
-                            val token = tokenJwt ?: SesionUsuario.tokenJwt
+                        val token = tokenJwt ?: SesionUsuario.tokenJwt
 
-                            if (token.isNullOrBlank()) {
-                                Toast.makeText(
-                                    contexto,
-                                    "Tu sesión ha caducado. Inicia sesión de nuevo.",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                return@launch
-                            }
-
+                        if (token.isNullOrBlank()) {
+                            Toast.makeText(
+                                contexto,
+                                "Tu sesión ha caducado. Inicia sesión de nuevo.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
                             val viajeIdActual = viajeSeleccionado.id
 
                             if (viajeIdActual.isNullOrBlank()) {
@@ -388,48 +397,12 @@ fun AppNavigation() {
                                     "No se ha encontrado el viaje.",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                return@launch
-                            }
-
-                            try {
-                                val respuesta = RetrofitClient.viajesApi.crearLugar(
-                                    token = "Bearer $token",
+                            } else {
+                                lugaresViewModel.crearLugar(
+                                    token = token,
                                     viajeId = viajeIdActual,
                                     lugar = lugar
                                 )
-
-                                if (respuesta.isSuccessful) {
-                                    val lugarGuardado = respuesta.body()
-
-                                    if (lugarGuardado != null) {
-                                        lugares = lugares + lugarGuardado
-                                        errorLugares = null
-
-                                        Toast.makeText(
-                                            contexto,
-                                            "Lugar añadido correctamente.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } else {
-                                        Toast.makeText(
-                                            contexto,
-                                            "El servidor guardó el lugar, pero no devolvió sus datos.",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        contexto,
-                                        "No se pudo guardar el lugar (${respuesta.code()}).",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            } catch (e: Exception) {
-                                Toast.makeText(
-                                    contexto,
-                                    "Error de conexión al guardar el lugar.",
-                                    Toast.LENGTH_LONG
-                                ).show()
                             }
                         }
                     },

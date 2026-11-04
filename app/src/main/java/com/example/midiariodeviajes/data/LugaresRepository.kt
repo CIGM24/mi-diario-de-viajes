@@ -30,4 +30,38 @@ class LugaresRepository {
             )
         }
     }
+
+    suspend fun crearLugar(
+        token: String,
+        viajeId: String,
+        lugar: LugarDto
+    ): Result<LugarDto> {
+        return try {
+            val respuesta = RetrofitClient.viajesApi.crearLugar(
+                token = "Bearer $token",
+                viajeId = viajeId,
+                lugar = lugar
+            )
+
+            if (respuesta.isSuccessful) {
+                val lugarGuardado = respuesta.body()
+
+                if (lugarGuardado != null) {
+                    Result.success(lugarGuardado)
+                } else {
+                    Result.failure(
+                        Exception("El servidor no devolvió los datos del lugar.")
+                    )
+                }
+            } else {
+                Result.failure(
+                    Exception("No se pudo guardar el lugar (${respuesta.code()}).")
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(
+                Exception("No se pudo guardar el lugar. Comprueba la conexión.")
+            )
+        }
+    }
 }

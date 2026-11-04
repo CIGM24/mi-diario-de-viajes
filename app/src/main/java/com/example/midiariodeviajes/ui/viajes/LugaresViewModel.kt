@@ -11,7 +11,9 @@ import kotlinx.coroutines.launch
 data class LugaresUiState(
     val lugares: List<LugarDto> = emptyList(),
     val cargando: Boolean = false,
-    val mensajeError: String? = null
+    val mensajeError: String? = null,
+    val guardando: Boolean = false,
+    val mensajeExito: String? = null
 )
 
 class LugaresViewModel(
@@ -42,5 +44,48 @@ class LugaresViewModel(
                 }
             )
         }
+    }
+
+    fun crearLugar(
+        token: String,
+        viajeId: String,
+        lugar: LugarDto
+    ) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                guardando = true,
+                mensajeError = null,
+                mensajeExito = null
+            )
+
+            val resultado = lugaresRepository.crearLugar(
+                token = token,
+                viajeId = viajeId,
+                lugar = lugar
+            )
+
+            resultado.fold(
+                onSuccess = { lugarGuardado ->
+                    _uiState.value = _uiState.value.copy(
+                        lugares = _uiState.value.lugares + lugarGuardado,
+                        guardando = false,
+                        mensajeError = null,
+                        mensajeExito = "Lugar añadido correctamente."
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value = _uiState.value.copy(
+                        guardando = false,
+                        mensajeError = error.message
+                            ?: "No se pudo guardar el lugar.",
+                        mensajeExito = null
+                    )
+                }
+            )
+        }
+    }
+
+    fun limpiarMensajeExito() {
+        _uiState.value = _uiState.value.copy(mensajeExito = null)
     }
 }
