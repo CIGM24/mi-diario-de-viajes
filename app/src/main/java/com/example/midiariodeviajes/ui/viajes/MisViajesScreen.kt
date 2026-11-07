@@ -19,6 +19,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,8 +37,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -44,6 +48,7 @@ import coil.request.ImageRequest
 import com.example.midiariodeviajes.data.ApiConfig
 import com.example.midiariodeviajes.data.SesionUsuario
 import com.example.midiariodeviajes.data.model.ViajeDto
+import com.example.midiariodeviajes.R
 import androidx.compose.material3.AlertDialog
 import java.text.Normalizer
 import java.util.Locale
@@ -52,7 +57,7 @@ private val VerdeOscuro = Color(0xFF263D32)
 private val VerdeBoton = Color(0xFF45664A)
 private val VerdeSuave = Color(0xFFE4EBDD)
 private val Arena = Color(0xFFE4C995)
-private val BlancoCalido = Color(0xFFFFFCF5)
+private val BlancoCalido = Color(0xFFF3EFE5)
 
 private val codigosIsoPais = Locale.getISOCountries().toSet()
 private val codigoPaisPorNombre by lazy {
@@ -86,6 +91,73 @@ private fun banderaDesdeDestino(destino: String): String? {
     return codigoPais.map { letra ->
         String(Character.toChars(0x1F1E6 + letra.code - 'A'.code))
     }.joinToString("")
+}
+
+private fun nombreAportaContexto(nombre: String, destino: String): Boolean {
+    val palabrasGenericas = setOf(
+        "viaje", "viajes", "a", "al", "de", "del", "en", "por", "para",
+        "mi", "mis", "el", "la", "los", "las"
+    )
+    val palabrasNombre = normalizarNombrePais(nombre)
+        .split(Regex("[^a-z0-9]+"))
+        .filter { it.isNotBlank() }
+        .toSet()
+    val palabrasNombreSignificativas = palabrasNombre - palabrasGenericas
+    val palabrasDestino = destino.split(Regex("[,;|]"))
+        .flatMap { fragmento ->
+            normalizarNombrePais(fragmento)
+                .split(Regex("[^a-z0-9]+"))
+                .filter { it.isNotBlank() }
+        }
+
+    return palabrasNombreSignificativas.isNotEmpty() &&
+            !palabrasDestino.containsAll(palabrasNombreSignificativas)
+}
+
+private data class FechaTarjeta(
+    val dia: Int,
+    val mes: Int,
+    val anio: Int
+)
+
+private val mesesCortos = listOf(
+    "ene", "feb", "mar", "abr", "may", "jun",
+    "jul", "ago", "sep", "oct", "nov", "dic"
+)
+
+private fun parsearFechaTarjeta(fecha: String): FechaTarjeta? {
+    val partes = fecha.split("-")
+    if (partes.size != 3) return null
+
+    val anio = partes[0].toIntOrNull() ?: return null
+    val mes = partes[1].toIntOrNull() ?: return null
+    val dia = partes[2].toIntOrNull() ?: return null
+
+    return if (mes in 1..12 && dia in 1..31) {
+        FechaTarjeta(dia, mes, anio)
+    } else {
+        null
+    }
+}
+
+private fun formatearRangoFechas(inicio: String, fin: String): String {
+    val fechaInicio = parsearFechaTarjeta(inicio) ?: return "$inicio – $fin"
+    val fechaFin = parsearFechaTarjeta(fin) ?: return "$inicio – $fin"
+    val mesInicio = mesesCortos[fechaInicio.mes - 1]
+    val mesFin = mesesCortos[fechaFin.mes - 1]
+
+    return when {
+        fechaInicio == fechaFin -> "${fechaInicio.dia} $mesInicio ${fechaInicio.anio}"
+        fechaInicio.mes == fechaFin.mes && fechaInicio.anio == fechaFin.anio ->
+            "${fechaInicio.dia}–${fechaFin.dia} $mesInicio ${fechaInicio.anio}"
+
+        fechaInicio.anio == fechaFin.anio ->
+            "${fechaInicio.dia} $mesInicio – ${fechaFin.dia} $mesFin ${fechaFin.anio}"
+
+        else ->
+            "${fechaInicio.dia} $mesInicio ${fechaInicio.anio} – " +
+                    "${fechaFin.dia} $mesFin ${fechaFin.anio}"
+    }
 }
 
 private data class ViajePrueba(
@@ -250,6 +322,10 @@ fun MisViajesScreen(
 
                 items(viajesFiltrados) { viaje ->
                     val iconoDestino = banderaDesdeDestino(viaje.destino) ?: "✈️"
+                    val viajePendiente = viaje.estado.equals(
+                        "PENDIENTE",
+                        ignoreCase = true
+                    )
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -265,12 +341,12 @@ fun MisViajesScreen(
                         }
                     ) {
                         Column(
-                            modifier = Modifier.padding(14.dp)
+                            modifier = Modifier.padding(12.dp)
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.Top,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -301,64 +377,98 @@ fun MisViajesScreen(
                                 Column(
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.Top
-                                    ) {
+                                    if (nombreAportaContexto(viaje.nombre, viaje.destino)) {
                                         Text(
                                             text = viaje.nombre,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = VerdeBoton
+                                        )
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = viaje.destino,
                                             modifier = Modifier.weight(1f),
                                             fontSize = 19.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = VerdeOscuro
                                         )
 
-                                        TextButton(
+                                        IconButton(
                                             onClick = { viajePendienteEliminar = viaje }
                                         ) {
-                                            Text(
-                                                text = "🗑️",
-                                                fontSize = 20.sp
+                                            Icon(
+                                                painter = painterResource(R.drawable.ic_delete),
+                                                contentDescription = "Eliminar viaje ${viaje.nombre}",
+                                                tint = Color(0xFFB45345)
                                             )
                                         }
+                                    }
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_calendar_today),
+                                            contentDescription = null,
+                                            tint = VerdeBoton,
+                                            modifier = Modifier.size(17.dp)
+                                        )
+                                        Text(
+                                            text = formatearRangoFechas(
+                                                viaje.fechaInicio,
+                                                viaje.fechaFin
+                                            ),
+                                            color = VerdeOscuro,
+                                            fontSize = 14.sp
+                                        )
                                     }
 
                                     Spacer(modifier = Modifier.height(4.dp))
 
                                     Text(
-                                        text = "Destino: ${viaje.destino}",
-                                        color = VerdeOscuro
-                                    )
-
-                                    Spacer(modifier = Modifier.height(4.dp))
-
-                                    Text(
-                                        text = "Fechas: ${viaje.fechaInicio} - ${viaje.fechaFin}",
-                                        color = VerdeOscuro
+                                        text = viaje.estado.uppercase(),
+                                        modifier = Modifier
+                                            .background(
+                                                color = if (viajePendiente) {
+                                                    VerdeSuave
+                                                } else {
+                                                    Color(0xFFF4E8D1)
+                                                },
+                                                shape = RoundedCornerShape(50)
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                                        color = if (viajePendiente) {
+                                            VerdeBoton
+                                        } else {
+                                            Color(0xFF8A6A32)
+                                        },
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Text(
-                                text = viaje.estado.uppercase(),
-                                color = if (viaje.estado.equals("PENDIENTE", ignoreCase = true)) {
-                                    VerdeBoton
-                                } else {
-                                    Color(0xFF8A6A32)
-                                },
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text = "Ver detalle del viaje →",
-                                color = VerdeBoton,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                Text(
+                                    text = "Ver detalle →",
+                                    color = VerdeBoton,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
                 }
