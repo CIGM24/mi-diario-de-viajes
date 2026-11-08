@@ -15,6 +15,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -79,6 +80,11 @@ fun AnadirViajeScreen(
     ) -> Unit = { _, _, _, _, _, _, _ -> },
     mensajeErrorGuardar: String? = null
 ) {
+    val coloresCampoTexto = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.Black,
+        unfocusedTextColor = Color.Black
+    )
+
     var nombre by remember(viajeEditar?.id) {
         mutableStateOf(viajeEditar?.nombre ?: "")
     }
@@ -163,7 +169,8 @@ fun AnadirViajeScreen(
                 label = { Text("Nombre del viaje *") },
                 placeholder = { Text("Ej. Vacaciones de verano") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = coloresCampoTexto
             )
 
             OutlinedTextField(
@@ -172,7 +179,8 @@ fun AnadirViajeScreen(
                 label = { Text("Destino *") },
                 placeholder = { Text("Ej. Roma, Italia") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = coloresCampoTexto
             )
 
             OutlinedTextField(
@@ -181,7 +189,8 @@ fun AnadirViajeScreen(
                 label = { Text("Fecha de inicio *") },
                 placeholder = { Text("AAAA-MM-DD") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = coloresCampoTexto
             )
 
             OutlinedTextField(
@@ -190,7 +199,8 @@ fun AnadirViajeScreen(
                 label = { Text("Fecha de fin *") },
                 placeholder = { Text("AAAA-MM-DD") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = coloresCampoTexto
             )
 
             OutlinedTextField(
@@ -200,6 +210,7 @@ fun AnadirViajeScreen(
                 placeholder = { Text("Ej. 1200.50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                colors = coloresCampoTexto,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal
                 )
@@ -212,7 +223,8 @@ fun AnadirViajeScreen(
                 placeholder = { Text("Anota tus planes e ideas...") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
-                maxLines = 5
+                maxLines = 5,
+                colors = coloresCampoTexto
             )
 
             Text(
