@@ -6,12 +6,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -47,6 +50,51 @@ private val VerdeSalvia = Color(0xFFE4EBDD)
 private val VerdeTexto = Color(0xFF45664A)
 private val Terracota = Color(0xFFB56F4D)
 private val FondoTerracota = Color(0xFFF5E5D9)
+private val mesesCortos = listOf(
+    "ene", "feb", "mar", "abr", "may", "jun",
+    "jul", "ago", "sep", "oct", "nov", "dic"
+)
+
+private data class FechaViajeDetalle(
+    val dia: Int,
+    val mes: Int,
+    val anio: Int
+)
+
+private fun parsearFechaDetalle(fecha: String): FechaViajeDetalle? {
+    val partes = fecha.split("-")
+    if (partes.size != 3) return null
+
+    val anio = partes[0].toIntOrNull() ?: return null
+    val mes = partes[1].toIntOrNull() ?: return null
+    val dia = partes[2].toIntOrNull() ?: return null
+
+    return if (mes in 1..12 && dia in 1..31) {
+        FechaViajeDetalle(dia, mes, anio)
+    } else {
+        null
+    }
+}
+
+private fun formatearRangoFechasDetalle(inicio: String, fin: String): String {
+    val fechaInicio = parsearFechaDetalle(inicio) ?: return "$inicio — $fin"
+    val fechaFin = parsearFechaDetalle(fin) ?: return "$inicio — $fin"
+    val mesInicio = mesesCortos[fechaInicio.mes - 1]
+    val mesFin = mesesCortos[fechaFin.mes - 1]
+
+    return when {
+        fechaInicio == fechaFin -> "${fechaInicio.dia} $mesInicio ${fechaInicio.anio}"
+        fechaInicio.mes == fechaFin.mes && fechaInicio.anio == fechaFin.anio ->
+            "${fechaInicio.dia}–${fechaFin.dia} $mesInicio ${fechaInicio.anio}"
+
+        fechaInicio.anio == fechaFin.anio ->
+            "${fechaInicio.dia} $mesInicio – ${fechaFin.dia} $mesFin ${fechaFin.anio}"
+
+        else ->
+            "${fechaInicio.dia} $mesInicio ${fechaInicio.anio} — " +
+                    "${fechaFin.dia} $mesFin ${fechaFin.anio}"
+    }
+}
 
 @Composable
 fun DetalleViajeScreen(
@@ -94,6 +142,7 @@ fun DetalleViajeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(FondoCrema)
+            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -141,57 +190,59 @@ fun DetalleViajeScreen(
                         )
                     }
                 }
-            }
 
-            OutlinedButton(
-                onClick = {
-                    selectorFoto.launch(
-                        PickVisualMediaRequest(
-                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    VerdeOscuro.copy(alpha = 0.88f)
+                                )
+                            )
                         )
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "📍 ${viaje.destino}",
+                        color = Color.White,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Text("📷 Elegir fotografía")
-            }
+                    Text(
+                        text = formatearRangoFechasDetalle(
+                            viaje.fechaInicio,
+                            viaje.fechaFin
+                        ),
+                        color = Color.White.copy(alpha = 0.92f),
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    text = "✈️ MI DIARIO DE VIAJES",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = VerdeTexto
-                )
-
-                Text(
-                    text = viaje.nombre,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = VerdeOscuro,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    text = "📍 ${viaje.destino}",
-                    fontSize = 17.sp,
-                    color = VerdeTexto
-                )
-
-                Text(
-                    text = "📅 ${viaje.fechaInicio} — ${viaje.fechaFin}",
-                    fontSize = 14.sp,
-                    color = VerdeTexto
-                )
+                IconButton(
+                    onClick = {
+                        selectorFoto.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(10.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.84f))
+                ) {
+                    Text("📷", fontSize = 18.sp)
+                }
             }
         }
 
@@ -209,36 +260,45 @@ fun DetalleViajeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(18.dp),
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = "💰",
-                    fontSize = 30.sp
+                    fontSize = 20.sp
                 )
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Presupuesto del viaje",
-                        fontSize = 14.sp,
-                        color = Terracota
-                    )
+                Text(
+                    text = "Presupuesto",
+                    fontSize = 12.sp,
+                    color = Terracota
+                )
 
-                    Text(
-                        text = viaje.presupuesto
-                            ?.let { "$it €" }
-                            ?: "No indicado",
-                        fontSize = 23.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = VerdeOscuro
-                    )
-                }
+                Text(
+                    text = viaje.presupuesto
+                        ?.let { "$it €" }
+                        ?: "No indicado",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = VerdeOscuro
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                val viajePendiente = viaje.estado.equals("PENDIENTE", ignoreCase = true)
 
                 Text(
                     text = "🧳 ${viaje.estado.lowercase()}",
-                    fontSize = 12.sp,
-                    color = VerdeTexto
+                    modifier = Modifier
+                        .background(
+                            color = if (viajePendiente) VerdeSalvia else FondoCrema,
+                            shape = RoundedCornerShape(50)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (viajePendiente) VerdeTexto else Terracota
                 )
             }
         }
