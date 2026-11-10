@@ -1,5 +1,6 @@
 package com.example.midiariodeviajes.ui.viajes.formulario
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +36,8 @@ import androidx.compose.ui.unit.dp
 
 private val VerdeOscuro = Color(0xFF263D32)
 private val VerdeBoton = Color(0xFF45664A)
+private val VerdeSalvia = Color(0xFFC5D6BC)
+private val Arena = Color(0xFFE4C995)
 private val BlancoCalido = Color(0xFFFFFCF5)
 
 private fun fechaEsValida(fecha: String): Boolean {
@@ -118,7 +121,7 @@ fun AnadirViajeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
-                    .padding(top = 25.dp, bottom = 8.dp)
+                    .padding(top = 32.dp, bottom = 8.dp)
             ) {
                 TextButton(
                     onClick = onVolverClick,
@@ -152,7 +155,7 @@ fun AnadirViajeScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "¡Prepara tu próxima aventura!",
+                text = "¡Prepara tu próxima aventura!🧳",
                 style = MaterialTheme.typography.titleLarge,
                 color = VerdeOscuro,
                 fontWeight = FontWeight.Bold
@@ -241,10 +244,12 @@ fun AnadirViajeScreen(
                     onClick = { estado = "PENDIENTE" },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (estado == "PENDIENTE")
-                            VerdeBoton else Color.LightGray,
-                        contentColor = if (estado == "PENDIENTE")
-                            Color.White else VerdeOscuro
+                        containerColor = if (estado == "PENDIENTE") VerdeBoton else BlancoCalido,
+                        contentColor = if (estado == "PENDIENTE") Color.White else VerdeOscuro
+                    ),
+                    border = BorderStroke(
+                        width = if (estado == "PENDIENTE") 2.dp else 1.dp,
+                        color = if (estado == "PENDIENTE") VerdeBoton else Color(0xFFD7D0C3)
                     )
                 ) {
                     Text("Pendiente")
@@ -254,10 +259,12 @@ fun AnadirViajeScreen(
                     onClick = { estado = "REALIZADO" },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (estado == "REALIZADO")
-                            VerdeBoton else Color.LightGray,
-                        contentColor = if (estado == "REALIZADO")
-                            Color.White else VerdeOscuro
+                        containerColor = if (estado == "REALIZADO") VerdeSalvia else BlancoCalido,
+                        contentColor = VerdeOscuro
+                    ),
+                    border = BorderStroke(
+                        width = if (estado == "REALIZADO") 2.dp else 1.dp,
+                        color = if (estado == "REALIZADO") VerdeBoton else Color(0xFFD7D0C3)
                     )
                 ) {
                     Text("Realizado")
@@ -321,7 +328,8 @@ fun AnadirViajeScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = VerdeBoton
+                    containerColor = Arena,
+                    contentColor = VerdeOscuro
                 )
             ) {
                 Text(if (viajeEditar == null) "Guardar viaje" else "Guardar cambios")
