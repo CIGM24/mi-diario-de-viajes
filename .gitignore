@@ -17,3 +17,4 @@ local.properties
 .idea/
 # Configuración local del backend
 /backend/src/main/resources/application.properties
+/backend/uploads/
