@@ -1,6 +1,7 @@
 
 package com.example.midiariodeviajes.ui.login
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -25,7 +28,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -37,6 +42,7 @@ import androidx.compose.ui.unit.sp
 private val VerdeOscuro = Color(0xFF263D32)
 private val Arena = Color(0xFFE4C995)
 private val Fondo = Color(0xFFFFFCF5)
+private val FondoLogin = Color(0xFFF3E1B8)
 private val VerdeBoton = Color(0xFF45664A)
 
 @Composable
@@ -51,7 +57,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Fondo)
+            .background(FondoLogin)
     ) {
         Column(
             modifier = Modifier
@@ -61,6 +67,41 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 64.dp)
+                        .height(2.dp)
+                ) {
+                    val dashLength = 6.dp.toPx()
+                    drawLine(
+                        color = VerdeBoton.copy(alpha = 0.55f),
+                        start = Offset(0f, size.height / 2),
+                        end = Offset(size.width, size.height / 2),
+                        strokeWidth = 2.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(dashLength, dashLength)
+                        )
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(FondoLogin, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "🧳", fontSize = 20.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Text(
                 text = "Mi Diario de Viajes",
                 color = VerdeOscuro,
