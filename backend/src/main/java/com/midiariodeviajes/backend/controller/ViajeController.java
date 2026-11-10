@@ -12,6 +12,8 @@ import com.midiariodeviajes.backend.model.EstadoViaje;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 
@@ -20,6 +22,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/viajes")
 public class ViajeController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ViajeController.class);
 
     private final ViajeService viajeService;
     private final AlmacenamientoFotosService almacenamientoFotosService;
@@ -138,11 +142,31 @@ public class ViajeController {
         return viajeService.obtenerPorIdYUsuario(id, usuarioId)
                 .map(viaje -> {
                     try {
-                        String nombreArchivo =
-                                almacenamientoFotosService.guardar(archivo);
+                        String fotoAnterior = viaje.getFotoUrl();
+                        String nombreArchivo = almacenamientoFotosService.guardar(archivo);
 
                         viaje.setFotoUrl(nombreArchivo);
-                        viajeService.guardar(viaje);
+                        try {
+                            viajeService.guardar(viaje);
+                        } catch (RuntimeException e) {
+                            viaje.setFotoUrl(fotoAnterior);
+                            try {
+                                almacenamientoFotosService.eliminar(nombreArchivo);
+                            } catch (IOException errorLimpieza) {
+                                LOGGER.warn("No se pudo limpiar la nueva foto tras fallar el guardado del viaje.", errorLimpieza);
+                            }
+                            throw e;
+                        }
+
+                        if (fotoAnterior != null
+                                && !fotoAnterior.isBlank()
+                                && !fotoAnterior.equals(nombreArchivo)) {
+                            try {
+                                almacenamientoFotosService.eliminar(fotoAnterior);
+                            } catch (IOException | IllegalArgumentException errorLimpieza) {
+                                LOGGER.warn("No se pudo eliminar la foto anterior {}.", fotoAnterior, errorLimpieza);
+                            }
+                        }
 
                         return ResponseEntity.ok(
                                 Map.of("fotoUrl", nombreArchivo)

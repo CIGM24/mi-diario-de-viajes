@@ -84,13 +84,30 @@ public class AlmacenamientoFotosService {
         return nombreArchivo;
     }
 
-    public Resource cargar(String nombreArchivo) throws IOException {
+    public void eliminar(String nombreArchivo) throws IOException {
+        if (!StringUtils.hasText(nombreArchivo)) {
+            return;
+        }
+
+        Files.deleteIfExists(resolverArchivoSeguro(nombreArchivo));
+    }
+
+    private Path resolverArchivoSeguro(String nombreArchivo) {
+        if (!StringUtils.hasText(nombreArchivo)) {
+            throw new IllegalArgumentException("Nombre de archivo no válido.");
+        }
+
         Path archivo = directorioFotos.resolve(nombreArchivo).normalize();
 
         if (!archivo.startsWith(directorioFotos)
                 || !directorioFotos.equals(archivo.getParent())) {
             throw new IllegalArgumentException("Nombre de archivo no válido.");
         }
+
+        return archivo;
+    }
+    public Resource cargar(String nombreArchivo) throws IOException {
+        Path archivo = resolverArchivoSeguro(nombreArchivo);
 
         if (!Files.isRegularFile(archivo) || !Files.isReadable(archivo)) {
             throw new IOException("No se encontró la fotografía.");
