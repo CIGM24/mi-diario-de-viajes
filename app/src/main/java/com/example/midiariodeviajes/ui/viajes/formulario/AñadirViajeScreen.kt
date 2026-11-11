@@ -1,6 +1,8 @@
 package com.example.midiariodeviajes.ui.viajes.formulario
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,10 +15,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,17 +33,108 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 private val VerdeOscuro = Color(0xFF263D32)
 private val VerdeBoton = Color(0xFF45664A)
 private val VerdeSalvia = Color(0xFFC5D6BC)
 private val Arena = Color(0xFFE4C995)
 private val BlancoCalido = Color(0xFFFFFCF5)
+private fun fechaIsoAMillis(fecha: String): Long? {
+    if (!Regex("""\d{4}-\d{2}-\d{2}""").matches(fecha)) return null
+
+    return runCatching {
+        SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            isLenient = false
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.parse(fecha)?.time
+    }.getOrNull()
+}
+
+private fun fechaMillisAIso(fechaMillis: Long): String =
+    SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }.format(Date(fechaMillis))
+
+private fun fechaIsoAVisible(fecha: String): String {
+    val fechaMillis = fechaIsoAMillis(fecha) ?: return fecha
+    return SimpleDateFormat("dd/MM/yyyy", Locale("es", "ES")).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }.format(Date(fechaMillis))
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CampoFechaViaje(
+    etiqueta: String,
+    fechaIso: String,
+    onFechaSeleccionada: (String) -> Unit
+) {
+    var mostrarSelector by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = fechaIsoAVisible(fechaIso),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(etiqueta) },
+            placeholder = { Text("Selecciona una fecha") },
+            trailingIcon = { Text("📅") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            )
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(
+                    onClickLabel = "Seleccionar $etiqueta",
+                    role = Role.Button
+                ) { mostrarSelector = true }
+        )
+    }
+
+    if (mostrarSelector) {
+        val estadoSelector = rememberDatePickerState(
+            initialSelectedDateMillis = fechaIsoAMillis(fechaIso)
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { mostrarSelector = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        estadoSelector.selectedDateMillis?.let { millis ->
+                            onFechaSeleccionada(fechaMillisAIso(millis))
+                        }
+                        mostrarSelector = false
+                    }
+                ) {
+                    Text("Aceptar", color = VerdeOscuro)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarSelector = false }) {
+                    Text("Cancelar", color = VerdeOscuro)
+                }
+            }
+        ) {
+            DatePicker(state = estadoSelector)
+        }
+    }
+}
 
 private fun fechaEsValida(fecha: String): Boolean {
     val formato = Regex("""\d{4}-\d{2}-\d{2}""")
@@ -186,24 +282,16 @@ fun AnadirViajeScreen(
                 colors = coloresCampoTexto
             )
 
-            OutlinedTextField(
-                value = fechaInicio,
-                onValueChange = { fechaInicio = it },
-                label = { Text("Fecha de inicio *") },
-                placeholder = { Text("AAAA-MM-DD") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                colors = coloresCampoTexto
+            CampoFechaViaje(
+                etiqueta = "Fecha de inicio *",
+                fechaIso = fechaInicio,
+                onFechaSeleccionada = { fechaInicio = it }
             )
 
-            OutlinedTextField(
-                value = fechaFin,
-                onValueChange = { fechaFin = it },
-                label = { Text("Fecha de fin *") },
-                placeholder = { Text("AAAA-MM-DD") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                colors = coloresCampoTexto
+            CampoFechaViaje(
+                etiqueta = "Fecha de fin *",
+                fechaIso = fechaFin,
+                onFechaSeleccionada = { fechaFin = it }
             )
 
             OutlinedTextField(
