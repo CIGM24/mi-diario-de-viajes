@@ -1,13 +1,21 @@
 package com.example.midiariodeviajes.ui.viajes.formulario
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -15,10 +23,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.midiariodeviajes.data.model.LugarDto
+
+private val VerdeOscuro = Color(0xFF263D32)
+private val VerdeBoton = Color(0xFF45664A)
+private val VerdeSalvia = Color(0xFFE4EBDD)
+private val BlancoCalido = Color(0xFFFFFCF5)
+private val Terracota = Color(0xFFB56F4D)
 
 @Composable
 fun AnadirLugarDialog(
@@ -46,23 +64,57 @@ fun AnadirLugarDialog(
         mutableStateOf<String?>(null)
     }
 
+    val coloresCampo = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.Black,
+        unfocusedTextColor = Color.Black,
+        focusedBorderColor = VerdeBoton,
+        focusedLabelColor = VerdeBoton,
+        cursorColor = VerdeOscuro
+    )
+
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(24.dp),
+        containerColor = BlancoCalido,
         title = {
-            Text(if (lugarEditar == null) "Añadir lugar" else "Editar lugar")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("📍", fontSize = 24.sp)
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = if (lugarEditar == null) "Añadir lugar" else "Editar lugar",
+                        color = VerdeOscuro,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (lugarEditar == null) {
+                            "Guarda un sitio especial de tu viaje"
+                        } else {
+                            "Actualiza los datos del lugar"
+                        },
+                        color = VerdeBoton,
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
         },
         text = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 440.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
                     value = nombre,
                     onValueChange = { nombre = it },
                     label = { Text("Nombre *") },
                     singleLine = true,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = coloresCampo,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -70,6 +122,10 @@ fun AnadirLugarDialog(
                     value = descripcion,
                     onValueChange = { descripcion = it },
                     label = { Text("Descripción") },
+                    minLines = 1,
+                    maxLines = 2,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = coloresCampo,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -78,38 +134,75 @@ fun AnadirLugarDialog(
                     onValueChange = { direccion = it },
                     label = { Text("Dirección") },
                     singleLine = true,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = coloresCampo,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                OutlinedTextField(
-                    value = latitud,
-                    onValueChange = { latitud = it },
-                    label = { Text("Latitud (opcional)") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(VerdeSalvia, RoundedCornerShape(16.dp))
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("🌍", fontSize = 20.sp)
+                            Text(
+                                text = "Ubicación en el mapa (opcional)",
+                                color = VerdeOscuro,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        Text(
+                            text = "Añade ambas coordenadas para guardar la posición exacta.",
+                            color = VerdeBoton,
+                            style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+                        )
+                    }
 
-                OutlinedTextField(
-                    value = longitud,
-                    onValueChange = { longitud = it },
-                    label = { Text("Longitud (opcional)") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    OutlinedTextField(
+                        value = latitud,
+                        onValueChange = { latitud = it },
+                        label = { Text("Latitud") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = coloresCampo,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = longitud,
+                        onValueChange = { longitud = it },
+                        label = { Text("Longitud") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = coloresCampo,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 if (error != null) {
-                    Text(error!!)
+                    Text(
+                        text = error!!,
+                        color = Terracota,
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         },
         confirmButton = {
-            TextButton(
+            Button(
                 onClick = {
                     val latitudNumero = latitud.trim()
                         .replace(',', '.')
@@ -155,14 +248,19 @@ fun AnadirLugarDialog(
                             )
                         )
                     }
-                }
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = VerdeOscuro,
+                    contentColor = Color.White
+                )
             ) {
-                Text(if (lugarEditar == null) "Guardar" else "Guardar cambios")
+                Text(if (lugarEditar == null) "Guardar lugar" else "Guardar cambios")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text("Cancelar", color = VerdeBoton)
             }
         }
     )
