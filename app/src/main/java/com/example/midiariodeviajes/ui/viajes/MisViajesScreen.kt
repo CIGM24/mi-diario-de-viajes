@@ -39,8 +39,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -91,27 +91,6 @@ private fun banderaDesdeDestino(destino: String): String? {
     return codigoPais.map { letra ->
         String(Character.toChars(0x1F1E6 + letra.code - 'A'.code))
     }.joinToString("")
-}
-
-private fun nombreAportaContexto(nombre: String, destino: String): Boolean {
-    val palabrasGenericas = setOf(
-        "viaje", "viajes", "a", "al", "de", "del", "en", "por", "para",
-        "mi", "mis", "el", "la", "los", "las"
-    )
-    val palabrasNombre = normalizarNombrePais(nombre)
-        .split(Regex("[^a-z0-9]+"))
-        .filter { it.isNotBlank() }
-        .toSet()
-    val palabrasNombreSignificativas = palabrasNombre - palabrasGenericas
-    val palabrasDestino = destino.split(Regex("[,;|]"))
-        .flatMap { fragmento ->
-            normalizarNombrePais(fragmento)
-                .split(Regex("[^a-z0-9]+"))
-                .filter { it.isNotBlank() }
-        }
-
-    return palabrasNombreSignificativas.isNotEmpty() &&
-            !palabrasDestino.containsAll(palabrasNombreSignificativas)
 }
 
 private data class FechaTarjeta(
@@ -345,12 +324,12 @@ fun MisViajesScreen(
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.Top,
+                                verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(88.dp)
+                                        .size(100.dp)
                                         .clip(RoundedCornerShape(12.dp))
                                         .background(VerdeSuave),
                                     contentAlignment = Alignment.Center
@@ -374,101 +353,100 @@ fun MisViajesScreen(
                                     }
                                 }
 
-                                Column(
-                                    modifier = Modifier.weight(1f)
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(100.dp)
                                 ) {
-                                    if (nombreAportaContexto(viaje.nombre, viaje.destino)) {
-                                        Text(
-                                            text = viaje.nombre,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = VerdeBoton
-                                        )
-                                    }
-
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
                                             text = viaje.destino,
-                                            modifier = Modifier.weight(1f),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(end = 48.dp),
                                             fontSize = 19.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = VerdeOscuro
                                         )
 
-                                        IconButton(
-                                            onClick = { viajePendienteEliminar = viaje }
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(end = 48.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.ic_delete),
-                                                contentDescription = "Eliminar viaje ${viaje.nombre}",
-                                                tint = Color(0xFFB45345)
+                                                painter = painterResource(R.drawable.ic_calendar_today),
+                                                contentDescription = null,
+                                                tint = VerdeBoton,
+                                                modifier = Modifier.size(17.dp)
+                                            )
+                                            Text(
+                                                text = formatearRangoFechas(
+                                                    viaje.fechaInicio,
+                                                    viaje.fechaFin
+                                                ),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                color = VerdeOscuro,
+                                                fontSize = 15.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = viaje.estado.uppercase(),
+                                                modifier = Modifier
+                                                    .background(
+                                                        color = if (viajePendiente) {
+                                                            VerdeSuave
+                                                        } else {
+                                                            Color(0xFFF4E8D1)
+                                                        },
+                                                        shape = RoundedCornerShape(50)
+                                                    )
+                                                    .padding(horizontal = 9.dp, vertical = 4.dp),
+                                                color = if (viajePendiente) {
+                                                    VerdeBoton
+                                                } else {
+                                                    Color(0xFF8A6A32)
+                                                },
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 12.sp
+                                            )
+                                            Text(
+                                                text = "→",
+                                                color = VerdeBoton,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 18.sp
                                             )
                                         }
                                     }
 
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    IconButton(
+                                        onClick = { viajePendienteEliminar = viaje },
+                                        modifier = Modifier.align(Alignment.TopEnd)
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.ic_calendar_today),
-                                            contentDescription = null,
-                                            tint = VerdeBoton,
-                                            modifier = Modifier.size(17.dp)
-                                        )
-                                        Text(
-                                            text = formatearRangoFechas(
-                                                viaje.fechaInicio,
-                                                viaje.fechaFin
-                                            ),
-                                            color = VerdeOscuro,
-                                            fontSize = 14.sp
+                                            painter = painterResource(R.drawable.ic_delete),
+                                            contentDescription = "Eliminar viaje ${viaje.nombre}",
+                                            tint = Color(0xFFB45345)
                                         )
                                     }
-
-                                    Spacer(modifier = Modifier.height(4.dp))
-
-                                    Text(
-                                        text = viaje.estado.uppercase(),
-                                        modifier = Modifier
-                                            .background(
-                                                color = if (viajePendiente) {
-                                                    VerdeSuave
-                                                } else {
-                                                    Color(0xFFF4E8D1)
-                                                },
-                                                shape = RoundedCornerShape(50)
-                                            )
-                                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                                        color = if (viajePendiente) {
-                                            VerdeBoton
-                                        } else {
-                                            Color(0xFF8A6A32)
-                                        },
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp
-                                    )
                                 }
                             }
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 4.dp),
-                                horizontalArrangement = Arrangement.End
-                            ) {
-                                Text(
-                                    text = "Ver detalle →",
-                                    color = VerdeBoton,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp
-                                )
-                            }
                         }
                     }
                 }
