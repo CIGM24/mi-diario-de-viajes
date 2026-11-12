@@ -1,6 +1,7 @@
 package com.example.midiariodeviajes.ui.viajes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -35,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -265,36 +270,138 @@ fun MisViajesScreen(
             ) {
                 if (viajesFiltrados.isEmpty()) {
                     item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 48.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = if (viajes.isEmpty()) {
-                                    "Tu diario empieza aquí"
-                                } else {
-                                    "No hay viajes en esta categoría"
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = VerdeOscuro
-                            )
-                            Text(
-                                text = if (viajes.isEmpty()) {
-                                    "Añade tu primer viaje para guardar tus recuerdos."
-                                } else {
-                                    "Prueba otro filtro para ver tus viajes."
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                                fontSize = 14.sp,
-                                color = VerdeBoton
-                            )
+                        if (viajes.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillParentMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(24.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color.White
+                                    ),
+                                    elevation = CardDefaults.cardElevation(
+                                        defaultElevation = 2.dp
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 20.dp, vertical = 22.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(54.dp)
+                                                    .background(VerdeSuave, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text("🌍", fontSize = 28.sp)
+                                            }
+                                            Canvas(
+                                                modifier = Modifier
+                                                    .width(42.dp)
+                                                    .height(2.dp)
+                                            ) {
+                                                drawLine(
+                                                    color = VerdeBoton.copy(alpha = 0.65f),
+                                                    start = Offset(0f, size.height / 2),
+                                                    end = Offset(size.width, size.height / 2),
+                                                    strokeWidth = 2.dp.toPx(),
+                                                    pathEffect = PathEffect.dashPathEffect(
+                                                        floatArrayOf(5.dp.toPx(), 5.dp.toPx())
+                                                    )
+                                                )
+                                            }
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(54.dp)
+                                                    .background(BlancoCalido, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text("🧳", fontSize = 28.sp)
+                                            }
+                                        }
+
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Text(
+                                                text = "Tu diario empieza aquí",
+                                                textAlign = TextAlign.Center,
+                                                fontSize = 19.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = VerdeOscuro
+                                            )
+                                            Text(
+                                                text = "Crea tu primer viaje y guarda fechas, lugares y recuerdos en un mismo sitio.",
+                                                textAlign = TextAlign.Center,
+                                                fontSize = 14.sp,
+                                                color = VerdeBoton
+                                            )
+                                        }
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(7.dp)
+                                        ) {
+                                            listOf("📍" to "Destino", "📅" to "Fechas", "✨" to "Lugares")
+                                                .forEach { (emoji, etiqueta) ->
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .background(
+                                                                BlancoCalido,
+                                                                RoundedCornerShape(12.dp)
+                                                            )
+                                                            .padding(vertical = 9.dp),
+                                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                                                    ) {
+                                                        Text(emoji, fontSize = 17.sp)
+                                                        Text(
+                                                            etiqueta,
+                                                            fontSize = 11.sp,
+                                                            color = VerdeOscuro,
+                                                            maxLines = 1
+                                                        )
+                                                    }
+                                                }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 48.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "No hay viajes en esta categoría",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = VerdeOscuro
+                                )
+                                Text(
+                                    text = "Prueba otro filtro para ver tus viajes.",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 14.sp,
+                                    color = VerdeBoton
+                                )
+                            }
                         }
                     }
                 }
