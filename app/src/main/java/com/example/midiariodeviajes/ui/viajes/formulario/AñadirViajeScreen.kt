@@ -163,6 +163,9 @@ private fun fechaEsValida(fecha: String): Boolean {
     return dia <= diasPorMes
 }
 
+private fun fechaHoyIso(): String =
+    SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnadirViajeScreen(
@@ -387,6 +390,14 @@ fun AnadirViajeScreen(
                                 fechaEsValida(fechaFin.trim()) &&
                                 fechaFin.trim() < fechaInicio.trim() ->
                             "La fecha de fin no puede ser anterior a la fecha de inicio."
+
+                        estado.equals("PENDIENTE", ignoreCase = true) &&
+                                fechaInicio.trim() < fechaHoyIso() ->
+                            "Un viaje pendiente debe empezar hoy o en una fecha futura."
+
+                        estado.equals("REALIZADO", ignoreCase = true) &&
+                                fechaFin.trim() > fechaHoyIso() ->
+                            "Un viaje realizado debe terminar hoy o en una fecha pasada."
 
                         presupuesto.isNotBlank() &&
                                 (presupuesto.replace(',', '.').toDoubleOrNull() == null ||
