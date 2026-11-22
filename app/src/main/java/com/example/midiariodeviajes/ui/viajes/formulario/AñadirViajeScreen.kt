@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -91,9 +92,16 @@ private fun CampoFechaViaje(
             trailingIcon = { Text("📅") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
+                unfocusedTextColor = Color.Black,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = VerdeBoton,
+                unfocusedBorderColor = Color(0xFFD7D0C3),
+                focusedLabelColor = VerdeBoton,
+                cursorColor = VerdeOscuro
             )
         )
         Box(
@@ -184,7 +192,13 @@ fun AnadirViajeScreen(
 ) {
     val coloresCampoTexto = OutlinedTextFieldDefaults.colors(
         focusedTextColor = Color.Black,
-        unfocusedTextColor = Color.Black
+        unfocusedTextColor = Color.Black,
+        focusedContainerColor = Color.White,
+        unfocusedContainerColor = Color.White,
+        focusedBorderColor = VerdeBoton,
+        unfocusedBorderColor = Color(0xFFD7D0C3),
+        focusedLabelColor = VerdeBoton,
+        cursorColor = VerdeOscuro
     )
 
     var nombre by remember(viajeEditar?.id) {
@@ -265,6 +279,13 @@ fun AnadirViajeScreen(
                 color = VerdeOscuro
             )
 
+            Text(
+                text = "📍 Datos del viaje",
+                color = VerdeBoton,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall
+            )
+
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
@@ -272,6 +293,7 @@ fun AnadirViajeScreen(
                 placeholder = { Text("Ej. Vacaciones de verano") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                shape = RoundedCornerShape(16.dp),
                 colors = coloresCampoTexto
             )
 
@@ -282,6 +304,7 @@ fun AnadirViajeScreen(
                 placeholder = { Text("Ej. Roma, Italia") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                shape = RoundedCornerShape(16.dp),
                 colors = coloresCampoTexto
             )
 
@@ -297,6 +320,15 @@ fun AnadirViajeScreen(
                 onFechaSeleccionada = { fechaFin = it }
             )
 
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "📝 Más detalles",
+                color = VerdeBoton,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall
+            )
+
             OutlinedTextField(
                 value = presupuesto,
                 onValueChange = { presupuesto = it },
@@ -304,6 +336,7 @@ fun AnadirViajeScreen(
                 placeholder = { Text("Ej. 1200.50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                shape = RoundedCornerShape(16.dp),
                 colors = coloresCampoTexto,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal
@@ -318,6 +351,7 @@ fun AnadirViajeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 maxLines = 5,
+                shape = RoundedCornerShape(16.dp),
                 colors = coloresCampoTexto
             )
 
