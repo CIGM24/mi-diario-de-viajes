@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,8 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -55,6 +54,7 @@ import com.example.midiariodeviajes.data.SesionUsuario
 import com.example.midiariodeviajes.data.model.ViajeDto
 import com.example.midiariodeviajes.R
 import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.graphics.drawscope.Stroke
 import java.text.Normalizer
 import java.util.Locale
 
@@ -195,68 +195,101 @@ fun MisViajesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp, bottom = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onVolverClick) {
-                    Text(
-                        text = "←",
-                        fontSize = 28.sp,
-                        color = VerdeOscuro
-                    )
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    IconButton(
+                        onClick = onVolverClick,
+                        modifier = Modifier
+                            .size(42.dp)
+                            .background(Color.White, CircleShape)
+                    ) {
+                        Text("←", fontSize = 24.sp, color = VerdeOscuro)
+                    }
                 }
 
                 Text(
                     text = "Mis viajes",
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.headlineSmall,
                     color = VerdeOscuro,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
                 )
 
-                TextButton(onClick = onPerfilClick) {
-                    Text(
-                        text = "Cerrar sesión",
-                        fontSize = 12.sp,
-                        color = VerdeOscuro
-                    )
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    TextButton(
+                        onClick = onPerfilClick,
+                        modifier = Modifier
+                            .height(40.dp)
+                            .background(VerdeSuave, RoundedCornerShape(50.dp)),
+                        contentPadding = PaddingValues(
+                            horizontal = 5.dp,
+                            vertical = 0.dp
+                        ),
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = VerdeOscuro
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Text("↪", fontSize = 14.sp)
+                            Text(
+                                text = "Cerrar sesión",
+                                fontSize = 10.sp,
+                                maxLines = 1
+                            )
+                        }
+                    }
                 }
             }
 
-            // Filtros
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf("Todos", "Pendientes", "Realizados").forEach { filtro ->
-                    val seleccionado = filtroSeleccionado == filtro
+            if (viajes.isNotEmpty()) {
+                // Filtros
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf("Todos", "Pendientes", "Realizados").forEach { filtro ->
+                        val seleccionado = filtroSeleccionado == filtro
 
-                    Button(
-                        onClick = { filtroSeleccionado = filtro },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(
-                            horizontal = 4.dp,
-                            vertical = 10.dp
-                        ),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (seleccionado) {
-                                VerdeBoton
-                            } else {
-                                Color.White
-                            },
-                            contentColor = if (seleccionado) {
-                                Color.White
-                            } else {
-                                VerdeOscuro
-                            }
-                        )
-                    ) {
-                        Text(
-                            text = filtro,
-                            fontSize = 13.sp
-                        )
+                        Button(
+                            onClick = { filtroSeleccionado = filtro },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(
+                                horizontal = 4.dp,
+                                vertical = 10.dp
+                            ),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (seleccionado) {
+                                    VerdeBoton
+                                } else {
+                                    Color.White
+                                },
+                                contentColor = if (seleccionado) {
+                                    Color.White
+                                } else {
+                                    VerdeOscuro
+                                }
+                            )
+                        ) {
+                            Text(
+                                text = filtro,
+                                fontSize = 13.sp
+                            )
+                        }
                     }
                 }
             }
@@ -288,44 +321,75 @@ fun MisViajesScreen(
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 20.dp, vertical = 22.dp),
+                                            .padding(horizontal = 20.dp, vertical = 24.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                                        verticalArrangement = Arrangement.spacedBy(18.dp)
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(142.dp)
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .background(BlancoCalido)
                                         ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(54.dp)
-                                                    .background(VerdeSuave, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text("🌍", fontSize = 28.sp)
-                                            }
-                                            Canvas(
-                                                modifier = Modifier
-                                                    .width(42.dp)
-                                                    .height(2.dp)
-                                            ) {
-                                                drawLine(
-                                                    color = VerdeBoton.copy(alpha = 0.65f),
-                                                    start = Offset(0f, size.height / 2),
-                                                    end = Offset(size.width, size.height / 2),
-                                                    strokeWidth = 2.dp.toPx(),
-                                                    pathEffect = PathEffect.dashPathEffect(
-                                                        floatArrayOf(5.dp.toPx(), 5.dp.toPx())
+                                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                                val ruta = Path().apply {
+                                                    moveTo(size.width * 0.22f, size.height * 0.66f)
+                                                    cubicTo(
+                                                        size.width * 0.38f, size.height * 0.24f,
+                                                        size.width * 0.62f, size.height * 0.82f,
+                                                        size.width * 0.78f, size.height * 0.38f
+                                                    )
+                                                }
+
+                                                drawPath(
+                                                    path = ruta,
+                                                    color = VerdeBoton.copy(alpha = 0.45f),
+                                                    style = Stroke(
+                                                        width = 3.dp.toPx(),
+                                                        pathEffect = PathEffect.dashPathEffect(
+                                                            floatArrayOf(7.dp.toPx(), 6.dp.toPx())
+                                                        )
                                                     )
                                                 )
                                             }
+
                                             Box(
                                                 modifier = Modifier
-                                                    .size(54.dp)
-                                                    .background(BlancoCalido, CircleShape),
+                                                    .align(Alignment.TopStart)
+                                                    .padding(start = 28.dp, top = 22.dp)
+                                                    .size(58.dp)
+                                                    .background(VerdeSuave, CircleShape),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Text("🧳", fontSize = 28.sp)
+                                                Text("🌍", fontSize = 32.sp)
+                                            }
+
+                                            Text(
+                                                text = "📍",
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .padding(end = 36.dp, top = 15.dp),
+                                                fontSize = 23.sp
+                                            )
+
+                                            Text(
+                                                text = "📍",
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomStart)
+                                                    .padding(start = 48.dp, bottom = 10.dp),
+                                                fontSize = 23.sp
+                                            )
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(end = 28.dp, bottom = 16.dp)
+                                                    .size(58.dp)
+                                                    .background(Arena, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text("🧳", fontSize = 32.sp)
                                             }
                                         }
 
@@ -336,14 +400,14 @@ fun MisViajesScreen(
                                             Text(
                                                 text = "Tu diario empieza aquí",
                                                 textAlign = TextAlign.Center,
-                                                fontSize = 19.sp,
+                                                fontSize = 21.sp,
                                                 fontWeight = FontWeight.SemiBold,
                                                 color = VerdeOscuro
                                             )
                                             Text(
                                                 text = "Crea tu primer viaje y guarda fechas, lugares y recuerdos en un mismo sitio.",
                                                 textAlign = TextAlign.Center,
-                                                fontSize = 14.sp,
+                                                fontSize = 15.sp,
                                                 color = VerdeBoton
                                             )
                                         }
@@ -361,14 +425,14 @@ fun MisViajesScreen(
                                                                 BlancoCalido,
                                                                 RoundedCornerShape(12.dp)
                                                             )
-                                                            .padding(vertical = 9.dp),
+                                                            .padding(vertical = 11.dp),
                                                         horizontalAlignment = Alignment.CenterHorizontally,
                                                         verticalArrangement = Arrangement.spacedBy(3.dp)
                                                     ) {
-                                                        Text(emoji, fontSize = 17.sp)
+                                                        Text(emoji, fontSize = 18.sp)
                                                         Text(
                                                             etiqueta,
-                                                            fontSize = 11.sp,
+                                                            fontSize = 12.sp,
                                                             color = VerdeOscuro,
                                                             maxLines = 1
                                                         )
