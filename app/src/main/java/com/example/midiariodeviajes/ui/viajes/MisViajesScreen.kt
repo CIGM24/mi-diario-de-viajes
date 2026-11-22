@@ -36,9 +36,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -63,6 +66,91 @@ private val VerdeBoton = Color(0xFF45664A)
 private val VerdeSuave = Color(0xFFE4EBDD)
 private val Arena = Color(0xFFE4C995)
 private val BlancoCalido = Color(0xFFF3EFE5)
+
+private fun DrawScope.drawCoche(center: Offset, color: Color) {
+    val ancho = 28.dp.toPx()
+    val izquierda = center.x - ancho / 2
+    val carroceria = Path().apply {
+        moveTo(izquierda, center.y + 2.dp.toPx())
+        lineTo(izquierda + 2.dp.toPx(), center.y - 2.dp.toPx())
+        lineTo(izquierda + 8.dp.toPx(), center.y - 2.dp.toPx())
+        lineTo(izquierda + 12.dp.toPx(), center.y - 6.dp.toPx())
+        lineTo(izquierda + 21.dp.toPx(), center.y - 6.dp.toPx())
+        lineTo(izquierda + 25.dp.toPx(), center.y - 2.dp.toPx())
+        lineTo(izquierda + ancho, center.y)
+        lineTo(izquierda + ancho, center.y + 5.dp.toPx())
+        lineTo(izquierda, center.y + 5.dp.toPx())
+        close()
+    }
+    drawPath(carroceria, color)
+
+    val radioRueda = 2.dp.toPx()
+    drawCircle(
+        color = BlancoCalido,
+        radius = radioRueda,
+        center = Offset(izquierda + 7.dp.toPx(), center.y + 5.dp.toPx())
+    )
+    drawCircle(
+        color = BlancoCalido,
+        radius = radioRueda,
+        center = Offset(izquierda + 22.dp.toPx(), center.y + 5.dp.toPx())
+    )
+}
+
+private fun DrawScope.drawTren(center: Offset, color: Color) {
+    val izquierda = center.x - 15.dp.toPx()
+    val tren = Path().apply {
+        moveTo(izquierda, center.y - 8.dp.toPx())
+        lineTo(izquierda + 22.dp.toPx(), center.y - 8.dp.toPx())
+        lineTo(izquierda + 29.dp.toPx(), center.y - 3.dp.toPx())
+        lineTo(izquierda + 29.dp.toPx(), center.y + 5.dp.toPx())
+        lineTo(izquierda, center.y + 5.dp.toPx())
+        close()
+    }
+    drawPath(tren, color)
+
+    val grosorVentana = 1.5.dp.toPx()
+    listOf(6.dp.toPx(), 13.dp.toPx(), 20.dp.toPx()).forEach { desplazamiento ->
+        drawLine(
+            color = BlancoCalido,
+            start = Offset(izquierda + desplazamiento, center.y - 5.dp.toPx()),
+            end = Offset(izquierda + desplazamiento, center.y - 1.dp.toPx()),
+            strokeWidth = grosorVentana
+        )
+    }
+
+    drawCircle(
+        color = BlancoCalido,
+        radius = 1.8.dp.toPx(),
+        center = Offset(izquierda + 7.dp.toPx(), center.y + 5.dp.toPx())
+    )
+    drawCircle(
+        color = BlancoCalido,
+        radius = 1.8.dp.toPx(),
+        center = Offset(izquierda + 23.dp.toPx(), center.y + 5.dp.toPx())
+    )
+}
+
+private fun DrawScope.drawAvion(center: Offset, color: Color) {
+    val semiancho = 15.dp.toPx()
+    val semialto = 11.dp.toPx()
+    val avion = Path().apply {
+        moveTo(center.x + semiancho, center.y)
+        lineTo(center.x + 3.dp.toPx(), center.y - 2.dp.toPx())
+        lineTo(center.x - 3.dp.toPx(), center.y - semialto)
+        lineTo(center.x - 6.dp.toPx(), center.y - semialto)
+        lineTo(center.x - 5.dp.toPx(), center.y - 2.dp.toPx())
+        lineTo(center.x - semiancho, center.y - 4.dp.toPx())
+        lineTo(center.x - 13.dp.toPx(), center.y)
+        lineTo(center.x - semiancho, center.y + 4.dp.toPx())
+        lineTo(center.x - 5.dp.toPx(), center.y + 2.dp.toPx())
+        lineTo(center.x - 6.dp.toPx(), center.y + semialto)
+        lineTo(center.x - 3.dp.toPx(), center.y + semialto)
+        lineTo(center.x + 3.dp.toPx(), center.y + 2.dp.toPx())
+        close()
+    }
+    drawPath(avion, color)
+}
 
 private val codigosIsoPais = Locale.getISOCountries().toSet()
 private val codigoPaisPorNombre by lazy {
@@ -298,7 +386,44 @@ fun MisViajesScreen(
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .drawBehind {
+                        if (viajes.size in 1..2 && viajesFiltrados.isNotEmpty()) {
+                            val colorRuta = VerdeBoton.copy(alpha = 0.18f)
+                            val ruta = Path().apply {
+                                moveTo(size.width * 0.08f, size.height * 0.84f)
+                                cubicTo(
+                                    size.width * 0.30f, size.height * 0.66f,
+                                    size.width * 0.60f, size.height * 0.96f,
+                                    size.width * 0.91f, size.height * 0.74f
+                                )
+                            }
+
+                            drawPath(
+                                path = ruta,
+                                color = colorRuta,
+                                style = Stroke(
+                                    width = 2.dp.toPx(),
+                                    pathEffect = PathEffect.dashPathEffect(
+                                        floatArrayOf(8.dp.toPx(), 10.dp.toPx())
+                                    )
+                                )
+                            )
+
+                            drawCoche(
+                                center = Offset(size.width * 0.10f, size.height * 0.84f),
+                                color = colorRuta
+                            )
+                            drawTren(
+                                center = Offset(size.width * 0.50f, size.height * 0.80f),
+                                color = colorRuta
+                            )
+                            drawAvion(
+                                center = Offset(size.width * 0.88f, size.height * 0.74f),
+                                color = colorRuta
+                            )
+                        }
+                    },
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (viajesFiltrados.isEmpty()) {
