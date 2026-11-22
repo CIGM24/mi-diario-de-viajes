@@ -151,6 +151,22 @@ fun AppNavigation() {
             )
             val registerUiState by registerViewModel.uiState.collectAsState()
 
+            LaunchedEffect(registerUiState.mensajeExito) {
+                val mensaje = registerUiState.mensajeExito
+                    ?: return@LaunchedEffect
+
+                Toast.makeText(
+                    contexto,
+                    mensaje,
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                navController.popBackStack(
+                    Rutas.LOGIN,
+                    inclusive = false
+                )
+            }
+
             RegisterScreen(
                 onRegistrarseClick = { nombre, correo, contrasena ->
                     registerViewModel.registrar(
@@ -162,8 +178,7 @@ fun AppNavigation() {
                 onIniciarSesionClick = {
                     navController.popBackStack()
                 },
-                mensajeError = registerUiState.mensajeError,
-                mensajeExito = registerUiState.mensajeExito
+                mensajeError = registerUiState.mensajeError
             )
         }
 

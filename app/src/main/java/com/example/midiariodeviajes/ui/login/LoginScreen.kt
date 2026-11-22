@@ -53,6 +53,11 @@ fun LoginScreen(
 ) {
     var correo by rememberSaveable { mutableStateOf("") }
     var contrasena by rememberSaveable { mutableStateOf("") }
+    var errorValidacion by rememberSaveable {
+        mutableStateOf<String?>(null)
+    }
+
+    val errorVisible = errorValidacion ?: mensajeError
 
     Box(
         modifier = Modifier
@@ -132,7 +137,10 @@ fun LoginScreen(
 
             OutlinedTextField(
                 value = correo,
-                onValueChange = { correo = it },
+                onValueChange = {
+                    correo = it
+                    errorValidacion = null
+                },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Correo electrónico") },
                 singleLine = true,
@@ -153,7 +161,10 @@ fun LoginScreen(
 
             OutlinedTextField(
                 value = contrasena,
-                onValueChange = { contrasena = it },
+                onValueChange = {
+                    contrasena = it
+                    errorValidacion = null
+                },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Contraseña") },
                 singleLine = true,
@@ -170,9 +181,9 @@ fun LoginScreen(
                     cursorColor = VerdeOscuro
                 )
             )
-            if (mensajeError != null) {
+            if (errorVisible != null) {
                 Text(
-                    text = mensajeError,
+                    text = errorVisible,
                     color = Color.Red,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -185,7 +196,24 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    onIniciarSesionClick(correo.trim(), contrasena)
+                    val error = when {
+                        correo.isBlank() && contrasena.isBlank() ->
+                            "Introduce tu correo electrónico y contraseña."
+
+                        correo.isBlank() ->
+                            "Introduce tu correo electrónico."
+
+                        contrasena.isBlank() ->
+                            "Introduce tu contraseña."
+
+                        else -> null
+                    }
+
+                    errorValidacion = error
+
+                    if (error == null) {
+                        onIniciarSesionClick(correo.trim(), contrasena)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

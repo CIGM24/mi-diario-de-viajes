@@ -53,8 +53,7 @@ private val VerdeBoton = Color(0xFF45664A)
 fun RegisterScreen(
     onRegistrarseClick: (String, String, String) -> Unit = { _, _, _ -> },
     onIniciarSesionClick: () -> Unit = {},
-    mensajeError: String? = null,
-    mensajeExito: String? = null
+    mensajeError: String? = null
 ) {
     var nombre by rememberSaveable { mutableStateOf("") }
     var correo by rememberSaveable { mutableStateOf("") }
@@ -261,14 +260,6 @@ fun RegisterScreen(
                 )
             }
 
-            if (mensajeExito != null) {
-                Text(
-                    text = mensajeExito,
-                    color = VerdeBoton,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
         }
     }
 }
