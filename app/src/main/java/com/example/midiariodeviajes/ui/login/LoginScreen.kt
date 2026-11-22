@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.sp
 private val VerdeOscuro = Color(0xFF263D32)
 private val Arena = Color(0xFFE4C995)
 private val Fondo = Color(0xFFFFFCF5)
-private val FondoLogin = Color(0xFFF3E1B8)
+private val FondoLogin = Color(0xFFF8F7F2)
 private val VerdeBoton = Color(0xFF45664A)
 
 @Composable
