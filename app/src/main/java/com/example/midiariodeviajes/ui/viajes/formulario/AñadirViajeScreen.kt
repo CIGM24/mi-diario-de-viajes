@@ -88,7 +88,7 @@ private fun CampoFechaViaje(
             onValueChange = {},
             readOnly = true,
             label = { Text(etiqueta) },
-            placeholder = { Text("Selecciona una fecha") },
+            placeholder = { Text("Elige fecha") },
             trailingIcon = { Text("📅") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -308,17 +308,26 @@ fun AnadirViajeScreen(
                 colors = coloresCampoTexto
             )
 
-            CampoFechaViaje(
-                etiqueta = "Fecha de inicio *",
-                fechaIso = fechaInicio,
-                onFechaSeleccionada = { fechaInicio = it }
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    CampoFechaViaje(
+                        etiqueta = "Inicio *",
+                        fechaIso = fechaInicio,
+                        onFechaSeleccionada = { fechaInicio = it }
+                    )
+                }
 
-            CampoFechaViaje(
-                etiqueta = "Fecha de fin *",
-                fechaIso = fechaFin,
-                onFechaSeleccionada = { fechaFin = it }
-            )
+                Box(modifier = Modifier.weight(1f)) {
+                    CampoFechaViaje(
+                        etiqueta = "Fin *",
+                        fechaIso = fechaFin,
+                        onFechaSeleccionada = { fechaFin = it }
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -349,8 +358,8 @@ fun AnadirViajeScreen(
                 label = { Text("Descripción") },
                 placeholder = { Text("Anota tus planes e ideas...") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3,
-                maxLines = 5,
+                minLines = 2,
+                maxLines = 2,
                 shape = RoundedCornerShape(16.dp),
                 colors = coloresCampoTexto
             )
@@ -384,8 +393,8 @@ fun AnadirViajeScreen(
                     onClick = { estado = "REALIZADO" },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (estado == "REALIZADO") VerdeSalvia else BlancoCalido,
-                        contentColor = VerdeOscuro
+                        containerColor = if (estado == "REALIZADO") VerdeBoton else BlancoCalido,
+                        contentColor = if (estado == "REALIZADO") Color.White else VerdeOscuro
                     ),
                     border = BorderStroke(
                         width = if (estado == "REALIZADO") 2.dp else 1.dp,
