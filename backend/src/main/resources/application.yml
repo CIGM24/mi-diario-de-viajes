@@ -3,3 +3,9 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 6MB
+
+app:
+  initializer:
+    enabled: ${APP_INITIALIZER_ENABLED:true}
+    demo-email: ${DEMO_USER_EMAIL:demo@example.com}
+    demo-password: ${DEMO_USER_PASSWORD:ViajesDemo123!}
