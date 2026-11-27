@@ -1,0 +1,11 @@
+# Plantilla local: copiar como application.properties y mantener este ejemplo en Git.
+# Las variables de entorno pueden reemplazar los valores locales.
+spring.application.name=backend
+spring.mongodb.uri=${SPRING_MONGODB_URI:mongodb://localhost:27017}
+spring.mongodb.database=${SPRING_MONGODB_DATABASE:mi_diario_viajes}
+
+# Obligatorio: define JWT_SECRET con un secreto aleatorio de al menos 32 caracteres.
+jwt.secret=${JWT_SECRET}
+
+# Ruta relativa al directorio desde el que se ejecuta el backend.
+app.upload.dir=${APP_UPLOAD_DIR:uploads/viajes}
