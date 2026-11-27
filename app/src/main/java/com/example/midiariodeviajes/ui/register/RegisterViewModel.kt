@@ -10,7 +10,8 @@ import kotlinx.coroutines.launch
 data class RegisterUiState(
     val cargando: Boolean = false,
     val mensajeError: String? = null,
-    val mensajeExito: String? = null
+    val mensajeExito: String? = null,
+    val correoRegistrado: String? = null
 )
 
 class RegisterViewModel(
@@ -33,7 +34,8 @@ class RegisterViewModel(
             _uiState.value = resultado.fold(
                 onSuccess = {
                     RegisterUiState(
-                        mensajeExito = "¡Cuenta creada! Ya puedes iniciar sesión."
+                        mensajeExito = "¡Cuenta creada! Ya puedes iniciar sesión.",
+                        correoRegistrado = email.trim()
                     )
                 },
                 onFailure = { error ->

@@ -49,11 +49,15 @@ private val VerdeBoton = Color(0xFF45664A)
 fun LoginScreen(
     onIniciarSesionClick: (String, String) -> Unit = { _, _ -> },
     onCrearCuentaClick: () -> Unit = {},
-    mensajeError: String? = null
+    mensajeError: String? = null,
+    correo: String = "",
+    onCorreoChange: (String) -> Unit = {},
+    claveReinicioFormulario: Int = 0
 ) {
-    var correo by rememberSaveable { mutableStateOf("") }
-    var contrasena by rememberSaveable { mutableStateOf("") }
-    var errorValidacion by rememberSaveable {
+    var contrasena by rememberSaveable(claveReinicioFormulario) {
+        mutableStateOf("")
+    }
+    var errorValidacion by rememberSaveable(claveReinicioFormulario) {
         mutableStateOf<String?>(null)
     }
 
@@ -137,8 +141,8 @@ fun LoginScreen(
 
             OutlinedTextField(
                 value = correo,
-                onValueChange = {
-                    correo = it
+                onValueChange = { nuevoCorreo ->
+                    onCorreoChange(nuevoCorreo)
                     errorValidacion = null
                 },
                 modifier = Modifier.fillMaxWidth(),
