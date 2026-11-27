@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
@@ -70,6 +71,8 @@ fun AppNavigation() {
     val registroRepository = remember { RegistroRepository() }
     val coroutineScope = rememberCoroutineScope()
     var mensajeError by remember { mutableStateOf<String?>(null) }
+    var correoLogin by rememberSaveable { mutableStateOf("") }
+    var claveReinicioFormularioLogin by rememberSaveable { mutableStateOf(0) }
     var tokenJwt by remember { mutableStateOf<String?>(null) }
     var viajes by remember { mutableStateOf<List<ViajeDto>>(emptyList()) }
     val viajesRepository = remember { ViajesRepository() }
@@ -131,6 +134,11 @@ fun AppNavigation() {
                 }
             }
             LoginScreen(
+                correo = correoLogin,
+                onCorreoChange = { nuevoCorreo ->
+                    correoLogin = nuevoCorreo
+                },
+                claveReinicioFormulario = claveReinicioFormularioLogin,
                 mensajeError = loginUiState.mensajeError
                     ?: viajesUiState.mensajeError
                     ?: mensajeError,
@@ -160,6 +168,9 @@ fun AppNavigation() {
                     mensaje,
                     Toast.LENGTH_SHORT
                 ).show()
+
+                correoLogin = registerUiState.correoRegistrado.orEmpty()
+                claveReinicioFormularioLogin++
 
                 navController.popBackStack(
                     Rutas.LOGIN,
@@ -193,6 +204,8 @@ fun AppNavigation() {
                     SesionUsuario.tokenJwt = null
                     viajes = emptyList()
                     mensajeError = null
+                    correoLogin = ""
+                    claveReinicioFormularioLogin++
 
                     navController.navigate(Rutas.BIENVENIDA) {
                         popUpTo(Rutas.BIENVENIDA) {
