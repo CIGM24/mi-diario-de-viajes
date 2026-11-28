@@ -10,15 +10,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -34,12 +39,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.midiariodeviajes.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -47,6 +56,7 @@ import java.util.TimeZone
 
 private val VerdeOscuro = Color(0xFF263D32)
 private val VerdeBoton = Color(0xFF45664A)
+private val AzulViaje = Color(0xFF5B7C99)
 private val VerdeSalvia = Color(0xFFC5D6BC)
 private val Arena = Color(0xFFE4C995)
 private val BlancoCalido = Color(0xFFFFFCF5)
@@ -89,7 +99,13 @@ private fun CampoFechaViaje(
             readOnly = true,
             label = { Text(etiqueta) },
             placeholder = { Text("Elige fecha") },
-            trailingIcon = { Text("📅") },
+            trailingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_calendar_today),
+                    contentDescription = null,
+                    tint = AzulViaje
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
@@ -234,25 +250,33 @@ fun AnadirViajeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
-                    .padding(top = 32.dp, bottom = 8.dp)
+                    .padding(top = 32.dp, bottom = 4.dp)
             ) {
-                TextButton(
+                IconButton(
                     onClick = onVolverClick,
                     modifier = Modifier.align(
                         androidx.compose.ui.Alignment.CenterStart
-                    )
+                    ).offset(y = 4.dp)
                 ) {
-                    Text("← Volver", color = VerdeOscuro)
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = VerdeOscuro
+                    )
                 }
 
                 Text(
                     text = if (viajeEditar == null) "Añadir viaje" else "Editar viaje",
                     modifier = Modifier.align(
                         androidx.compose.ui.Alignment.Center
-                    ),
-                    color = VerdeOscuro,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleLarge
+                    ).offset(y = 4.dp),
+                    color = VerdeBoton,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
                 )
             }
         }
@@ -264,14 +288,16 @@ fun AnadirViajeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "¡Prepara tu próxima aventura!🧳",
+                text = "¡Prepara tu próxima aventura! 🧳",
+                modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.titleLarge,
                 color = VerdeOscuro,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
 
             Text(
@@ -407,6 +433,21 @@ fun AnadirViajeScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
+            if (errorValidacion != null) {
+                Text(
+                    text = errorValidacion!!,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            if (mensajeErrorGuardar != null) {
+                Text(
+                    text = mensajeErrorGuardar,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
             Button(
                 onClick = {
                     errorValidacion = when {
@@ -475,20 +516,6 @@ fun AnadirViajeScreen(
                 )
             ) {
                 Text(if (viajeEditar == null) "Guardar viaje" else "Guardar cambios")
-            }
-            if (errorValidacion != null) {
-                Text(
-                    text = errorValidacion!!,
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            if (mensajeErrorGuardar != null) {
-                Text(
-                    text = mensajeErrorGuardar,
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
 
             Text(
