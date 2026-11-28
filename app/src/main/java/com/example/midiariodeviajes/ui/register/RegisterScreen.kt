@@ -1,5 +1,6 @@
 package com.example.midiariodeviajes.ui.register
 
+import android.util.Patterns
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -40,6 +46,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +65,10 @@ fun RegisterScreen(
     var nombre by rememberSaveable { mutableStateOf("") }
     var correo by rememberSaveable { mutableStateOf("") }
     var contrasena by rememberSaveable { mutableStateOf("") }
+    var mostrarContrasena by rememberSaveable { mutableStateOf(false) }
+    var errorValidacionCorreo by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val errorVisible = errorValidacionCorreo ?: mensajeError
 
     Column(
         modifier = Modifier
@@ -127,6 +138,8 @@ fun RegisterScreen(
                             keyboardType = KeyboardType.Text
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
                             focusedBorderColor = VerdeOscuro,
                             focusedLabelColor = VerdeOscuro,
                             cursorColor = VerdeOscuro
@@ -137,7 +150,10 @@ fun RegisterScreen(
 
                     OutlinedTextField(
                         value = correo,
-                        onValueChange = { correo = it },
+                        onValueChange = {
+                            correo = it
+                            errorValidacionCorreo = null
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Correo electrónico") },
                         singleLine = true,
@@ -146,6 +162,8 @@ fun RegisterScreen(
                             keyboardType = KeyboardType.Email
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
                             focusedBorderColor = VerdeOscuro,
                             focusedLabelColor = VerdeOscuro,
                             cursorColor = VerdeOscuro
@@ -161,11 +179,34 @@ fun RegisterScreen(
                         label = { Text("Contraseña") },
                         singleLine = true,
                         shape = RoundedCornerShape(14.dp),
-                        visualTransformation = PasswordVisualTransformation(),
+                        visualTransformation = if (mostrarContrasena) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { mostrarContrasena = !mostrarContrasena }) {
+                                Icon(
+                                    imageVector = if (mostrarContrasena) {
+                                        Icons.Filled.VisibilityOff
+                                    } else {
+                                        Icons.Filled.Visibility
+                                    },
+                                    contentDescription = if (mostrarContrasena) {
+                                        "Ocultar contraseña"
+                                    } else {
+                                        "Mostrar contraseña"
+                                    },
+                                    tint = VerdeOscuro
+                                )
+                            }
+                        },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
                             focusedBorderColor = VerdeOscuro,
                             focusedLabelColor = VerdeOscuro,
                             cursorColor = VerdeOscuro
@@ -227,9 +268,9 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            if (mensajeError != null) {
+            if (errorVisible != null) {
                 Text(
-                    text = mensajeError,
+                    text = errorVisible,
                     color = Color.Red,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -238,11 +279,24 @@ fun RegisterScreen(
 
             Button(
                 onClick = {
-                    onRegistrarseClick(
-                        nombre.trim(),
-                        correo.trim(),
-                        contrasena
-                    )
+                    val correoLimpio = correo.trim()
+                    errorValidacionCorreo = when {
+                        correoLimpio.isBlank() ->
+                            "Introduce tu correo electrónico."
+
+                        !Patterns.EMAIL_ADDRESS.matcher(correoLimpio).matches() ->
+                            "Introduce un correo electrónico válido."
+
+                        else -> null
+                    }
+
+                    if (errorValidacionCorreo == null) {
+                        onRegistrarseClick(
+                            nombre.trim(),
+                            correoLimpio,
+                            contrasena
+                        )
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

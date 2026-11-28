@@ -1,6 +1,7 @@
 
 package com.example.midiariodeviajes.ui.login
 
+import android.util.Patterns
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,8 +16,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -56,6 +62,9 @@ fun LoginScreen(
 ) {
     var contrasena by rememberSaveable(claveReinicioFormulario) {
         mutableStateOf("")
+    }
+    var mostrarContrasena by rememberSaveable(claveReinicioFormulario) {
+        mutableStateOf(false)
     }
     var errorValidacion by rememberSaveable(claveReinicioFormulario) {
         mutableStateOf<String?>(null)
@@ -173,7 +182,28 @@ fun LoginScreen(
                 label = { Text("Contraseña") },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (mostrarContrasena) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                trailingIcon = {
+                    IconButton(onClick = { mostrarContrasena = !mostrarContrasena }) {
+                        Icon(
+                            imageVector = if (mostrarContrasena) {
+                                Icons.Filled.VisibilityOff
+                            } else {
+                                Icons.Filled.Visibility
+                            },
+                            contentDescription = if (mostrarContrasena) {
+                                "Ocultar contraseña"
+                            } else {
+                                "Mostrar contraseña"
+                            },
+                            tint = VerdeOscuro
+                        )
+                    }
+                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password
                 ),
@@ -206,6 +236,9 @@ fun LoginScreen(
 
                         correo.isBlank() ->
                             "Introduce tu correo electrónico."
+
+                        !Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches() ->
+                            "Introduce un correo electrónico válido."
 
                         contrasena.isBlank() ->
                             "Introduce tu contraseña."
