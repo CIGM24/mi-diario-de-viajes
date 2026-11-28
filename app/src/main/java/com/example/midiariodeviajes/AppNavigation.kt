@@ -196,9 +196,6 @@ fun AppNavigation() {
         composable(Rutas.MIS_VIAJES) {
             MisViajesScreen(
                 viajes = viajes,
-                onVolverClick = {
-                    navController.popBackStack()
-                },
                 onPerfilClick = {
                     tokenJwt = null
                     SesionUsuario.tokenJwt = null

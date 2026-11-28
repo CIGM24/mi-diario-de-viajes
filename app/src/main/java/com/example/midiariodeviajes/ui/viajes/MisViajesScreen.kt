@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -227,8 +229,8 @@ private fun formatearRangoFechas(inicio: String, fin: String): String {
             "${fechaInicio.dia} $mesInicio – ${fechaFin.dia} $mesFin ${fechaFin.anio}"
 
         else ->
-            "${fechaInicio.dia} $mesInicio ${fechaInicio.anio} – " +
-                    "${fechaFin.dia} $mesFin ${fechaFin.anio}"
+            "${fechaInicio.dia} $mesInicio ${fechaInicio.anio.toString().takeLast(2)} – " +
+                    "${fechaFin.dia} $mesFin ${fechaFin.anio.toString().takeLast(2)}"
     }
 }
 
@@ -243,7 +245,6 @@ private data class ViajePrueba(
 @Composable
 fun MisViajesScreen(
     viajes: List<ViajeDto> = emptyList(),
-    onVolverClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onAnadirViajeClick: () -> Unit = {},
     onDetalleViajeClick: (String) -> Unit = {},
@@ -279,64 +280,53 @@ fun MisViajesScreen(
         ) {
 
             // Cabecera
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 20.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(top = 16.dp, bottom = 20.dp)
+                    .height(48.dp)
             ) {
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    IconButton(
-                        onClick = onVolverClick,
-                        modifier = Modifier
-                            .size(42.dp)
-                            .background(Color.White, CircleShape)
-                    ) {
-                        Text("←", fontSize = 24.sp, color = VerdeOscuro)
-                    }
-                }
-
                 Text(
                     text = "Mis viajes",
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = VerdeOscuro,
-                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center),
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    ),
+                    color = VerdeBoton,
                     textAlign = TextAlign.Center,
                     maxLines = 1
                 )
 
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterEnd
+                TextButton(
+                    onClick = onPerfilClick,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .height(42.dp)
+                        .background(VerdeSuave, RoundedCornerShape(50.dp)),
+                    contentPadding = PaddingValues(
+                        horizontal = 7.dp,
+                        vertical = 0.dp
+                    ),
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = VerdeOscuro
+                    )
                 ) {
-                    TextButton(
-                        onClick = onPerfilClick,
-                        modifier = Modifier
-                            .height(40.dp)
-                            .background(VerdeSuave, RoundedCornerShape(50.dp)),
-                        contentPadding = PaddingValues(
-                            horizontal = 5.dp,
-                            vertical = 0.dp
-                        ),
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = VerdeOscuro
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(3.dp)
-                        ) {
-                            Text("↪", fontSize = 14.sp)
-                            Text(
-                                text = "Cerrar sesión",
-                                fontSize = 10.sp,
-                                maxLines = 1
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Filled.ExitToApp,
+                            contentDescription = null,
+                            tint = VerdeOscuro,
+                            modifier = Modifier.size(17.dp)
+                        )
+                        Text(
+                            text = "Cerrar sesión",
+                            fontSize = 11.sp,
+                            maxLines = 1
+                        )
                     }
                 }
             }
@@ -672,8 +662,7 @@ fun MisViajesScreen(
 
                                         Row(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(end = 48.dp),
+                                                .fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                                         ) {
